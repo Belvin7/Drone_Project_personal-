@@ -42,6 +42,29 @@ Install according to their documentation
     18. "source ./install/setup.bash"
     19. "colcon test --executor sequential --parallel-workers 0 --base-paths src/ardupilot --event-handlers=console_cohesion+"
         -> to show the result of the test use "colcon test-result --all --verbose"
+        
+       -> next the steps to install necessary packages for gazebo+ros+ardu working together 
+    20. "vcs import --input https://raw.githubusercontent.com/ArduPilot/ardupilot_gz/main/ros2_gz.repos --recursive src"
+        -> this downloads needed repos
+        -> it also downloads a second micro-ros-agent repo which you need to remove 
+        -> also ros_gz repo is for humble so it didn't compile for me
+        -> you can download the jazzy branch from "https://github.com/gazebosim/ros_gz/tree/jazzy"
+    21. add "export GZ_VERSION=harmonic" to ~/.bashrc
+    22. "source /opt/ros/humble/setup.bash"
+    23. "sudo apt update"
+    24. "rosdep update"
+    25. "rosdep install --from-paths src --ignore-src -r"    
+    26. "colcon build" (in workspace directory)
+        -> I had a problem because I didn't had enough ram and swap space 
+        -> so if you have a crappy laptop like me (8GB RAM and 4GB swap) you should increase your swap space otherwise 
+           your laptop freezes during building 
+    27. "colcon test --packages-select ardupilot_sitl ardupilot_dds_tests ardupilot_gazebo ardupilot_gz_applications ardupilot_gz_description ardupilot_gz_gazebo ardupilot_gz_bringup"
+        -> test all packages, in this step I got the linter errors
+        -> "colcon test-result --all --verbose" gives the verbose test output
+    28. "ros2 launch ardupilot_gz_bringup iris_runway.launch.py"
+        -> now this should be running and you should see a drone standing on a runway
+        -> so far no drone movement but you should see a  window for rviz and  one for gazebo 
+        -> there are more examples on the ardupilot docu site
 
 ## Usage
 - add later
