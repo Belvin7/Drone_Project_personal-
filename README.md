@@ -66,6 +66,10 @@ Install according to their documentation
         -> so far no drone movement but you should see a  window for rviz and  one for gazebo 
         -> there are more examples on the ardupilot docu site
 
+        -> found other package that not work correctly
+    - replace "sdformat_urdf" with jazzy branch "https://github.com/ros/sdformat_urdf/tree/jazzy"
+    - package "ardupilot_gz" also  
+
 ## Usage
 - add later
 
