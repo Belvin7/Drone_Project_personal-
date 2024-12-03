@@ -72,8 +72,8 @@ Install according to their documentation
 
 ## start simulation
 
-    - to prevent clutter I made a separate folder where we start the terminals mentioned in the steps below
-    - because both commands create additional files and a folder 
+- to prevent clutter I made a separate folder where we start the terminals mentioned in the steps below
+- because both commands create additional files and a folder 
 
     1. open a terminal and launch "ros2 launch ardupilot_gz_bringup iris_runway.launch.py"
         -> now gazebo and rviz should start
@@ -86,6 +86,7 @@ Install according to their documentation
         -> "takeoff 40"
         -> now the drone should start the motors and take off to an altitude of 40m
         -> you should see this in gazebo and rviz
+        -> 
     4. you can give additional commands
         -> see "https://ardupilot.org/mavproxy/docs/getting_started/cheatsheet.html"
            and "https://ardupilot.org/dev/docs/copter-sitl-mavproxy-tutorial.html"
