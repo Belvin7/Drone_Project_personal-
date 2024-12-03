@@ -42,13 +42,12 @@ Install according to their documentation
     18. "source ./install/setup.bash"
     19. "colcon test --executor sequential --parallel-workers 0 --base-paths src/ardupilot --event-handlers=console_cohesion+" \
         -> to show the result of the test use "colcon test-result --all --verbose" \
-        
-       -> next the steps to install necessary packages for gazebo+ros+ardu working together  \
+        -> next the steps to install necessary packages for gazebo+ros+ardu working together  
     20. "vcs import --input https://raw.githubusercontent.com/ArduPilot/ardupilot_gz/main/ros2_gz.repos --recursive src" \
         -> this downloads needed repos \
         -> it also downloads a second micro-ros-agent repo which you need to remove  \
         -> also ros_gz repo is for humble so it didn't compile for me \
-        -> you can download the jazzy branch from "https://github.com/gazebosim/ros_gz/tree/jazzy" \
+        -> you can download the jazzy branch from "https://github.com/gazebosim/ros_gz/tree/jazzy" 
     21. add "export GZ_VERSION=harmonic" to ~/.bashrc
     22. "source /opt/ros/humble/setup.bash"
     23. "sudo apt update"
@@ -64,7 +63,7 @@ Install according to their documentation
     28. "ros2 launch ardupilot_gz_bringup iris_runway.launch.py" \
         -> now this should be running and you should see a drone standing on a runway \
         -> so far no drone movement but you should see a  window for rviz and  one for gazebo  \
-        -> there are more examples on the ardupilot docu site \
+        -> there are more examples on the ardupilot docu site 
 
 - found other package that not work correctly:
     - replace "sdformat_urdf" with jazzy branch "https://github.com/ros/sdformat_urdf/tree/jazzy" 
@@ -79,13 +78,13 @@ Install according to their documentation
         -> now gazebo and rviz should start
     2. open second terminal and run "mavproxy.py --master=udp:127.0.0.1:14550  --console --map --sitl=127.0.0.1:5501" \
         -> this will launch the mav proxy which acts as a ground station for the drone \
-        -> maybe "--console" and "--map" not necessary because the additional windows are not really needed \
+        -> maybe "--console" and "--map" not necessary because the additional windows are not really needed 
     3. to start the drone type in the terminal open in step 2. \
         -> "mode guided" \
         -> "arm throttle" \
         -> "takeoff 40" \
         -> now the drone should start the motors and take off to an altitude of 40m \
-        -> you should see this in gazebo and rviz \
+        -> you should see this in gazebo and rviz 
     4. you can give additional commands \
         -> see "https://ardupilot.org/mavproxy/docs/getting_started/cheatsheet.html" \
            and "https://ardupilot.org/dev/docs/copter-sitl-mavproxy-tutorial.html" \
