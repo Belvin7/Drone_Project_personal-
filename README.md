@@ -66,7 +66,7 @@ Install according to their documentation
         -> so far no drone movement but you should see a  window for rviz and  one for gazebo 
         -> there are more examples on the ardupilot docu site
 
-        -> found other package that not work correctly
+- found other package that not work correctly:
     - replace "sdformat_urdf" with jazzy branch "https://github.com/ros/sdformat_urdf/tree/jazzy"
     - package "ardupilot_gz" also  
 
@@ -74,7 +74,7 @@ Install according to their documentation
 
 - to prevent clutter I made a separate folder where we start the terminals mentioned in the steps below
 - because both commands create additional files and a folder 
-
+- to run a single drone simulation:
     1. open a terminal and launch "ros2 launch ardupilot_gz_bringup iris_runway.launch.py"
         -> now gazebo and rviz should start
     2. open second terminal and run "mavproxy.py --master=udp:127.0.0.1:14550  --console --map --sitl=127.0.0.1:5501"
