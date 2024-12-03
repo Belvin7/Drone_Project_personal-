@@ -70,6 +70,29 @@ Install according to their documentation
     - replace "sdformat_urdf" with jazzy branch "https://github.com/ros/sdformat_urdf/tree/jazzy"
     - package "ardupilot_gz" also  
 
+## start simulation
+
+    - to prevent clutter I made a separate folder where we start the terminals mentioned in the steps below
+    - because both commands create additional files and a folder 
+
+    1. open a terminal and launch "ros2 launch ardupilot_gz_bringup iris_runway.launch.py"
+        -> now gazebo and rviz should start
+    2. open second terminal and run "mavproxy.py --master=udp:127.0.0.1:14550  --console --map --sitl=127.0.0.1:5501"
+        -> this will launch the mav proxy which acts as a ground station for the drone
+        -> maybe "--console" and "--map" not necessary because the additional windows are not really needed
+    3. to start the drone type in the terminal open in step 2.
+        -> "mode guided"
+        -> "arm throttle"
+        -> "takeoff 40"
+        -> now the drone should start the motors and take off to an altitude of 40m
+        -> you should see this in gazebo and rviz
+    4. you can give additional commands
+        -> see "https://ardupilot.org/mavproxy/docs/getting_started/cheatsheet.html"
+           and "https://ardupilot.org/dev/docs/copter-sitl-mavproxy-tutorial.html"
+           for further information
+    5. "mode rtl"
+        -> drone return to home-waypoint, lands and stops the motors
+
 ## Usage
 - add later
 
