@@ -12,7 +12,7 @@ Install according to their documentation
 - ardupilot:
     1. change to the folder you want to install ardupilot 
     2. mkdir -p ardu_ws/src \
-        -> need to be installed in own ros workspace        \
+        -> need to be installed in own ros workspace 
     3. cd ardu_ws
     4. vcs import --recursive --input  https://raw.githubusercontent.com/ArduPilot/ardupilot/master/Tools/ros2/ros2.repos src \
         -> this downloads the repo
