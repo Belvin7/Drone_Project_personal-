@@ -17,9 +17,10 @@ setup(
     maintainer_email='michael@todo.todo',
     description='TODO: Package description',
     license='Apache-2.0',
-    tests_require=['pytest'],
+    #tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'talker = p2_drone_formation_control_simulator.test:main',
         ],
     },
 )

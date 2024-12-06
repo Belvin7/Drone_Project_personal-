@@ -7,7 +7,8 @@
   <maintainer email="michael@todo.todo">michael</maintainer>
   <license>Apache-2.0</license>
 
-  <depend>[deps]</depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
