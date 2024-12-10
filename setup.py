@@ -20,7 +20,7 @@ setup(
     #tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'talker = p2_drone_formation_control_simulator.test:main',
+            'cmd_pub = p2_drone_formation_control_simulator.test:main',
         ],
     },
 )
