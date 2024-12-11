@@ -1,0 +1,18 @@
+1. cmd from "ardupilot/Tools/ros2/README.md":
+
+ros2 launch ardupilot_sitl sitl_dds_udp.launch.py transport:=udp4 synthetic_clock:=True wipe:=False model:=quad speedup:=1 slave:=0 instance:=0 defaults:=$(ros2 pkg prefix ardupilot_sitl)/share/ardupilot_sitl/config/default_params/copter.parm,$(ros2 pkg prefix ardupilot_sitl)/share/ardupilot_sitl/config/default_params/dds_udp.parm sim_address:=127.0.0.1 master:=tcp:127.0.0.1:5760 sitl:=127.0.0.1:5501
+
+2. open additional terminal and type following cmd there:
+
+3. switch to guided mode
+
+ros2 service call /ap/mode_switch ardupilot_msgs/srv/ModeSwitch "{mode: 4}"
+
+4. arming motors
+
+ros2 service call /ap/arm_motors ardupilot_msgs/srv/ArmMotors "{arm: true}"
+
+5. takeoff with altitude of 20m
+
+ros2 service call /ap/experimental/takeoff  ardupilot_msgs/srv/Takeoff "{alt: 20.0}"
+
