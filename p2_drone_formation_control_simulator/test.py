@@ -16,12 +16,14 @@ class CmdVel(Node):
 
     def timer_callback(self):
         msg = TwistStamped()
-        msg.twist.linear.x = 20.
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = 'base_link'
+        msg.twist.linear.x = 3.
         msg.twist.linear.y = 0.
         msg.twist.linear.z = 0.
-        msg.twist.angular.x = 10.
-        msg.twist.angular.y = 10.
-        msg.twist.angular.z = 10.
+        msg.twist.angular.x = 0.
+        msg.twist.angular.y = 0.
+        msg.twist.angular.z = 0.
         self.publisher_.publish(msg)
         self.get_logger().info('Publishing: "%s"' % msg)
         self.i += 1
