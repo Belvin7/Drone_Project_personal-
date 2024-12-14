@@ -1,4 +1,6 @@
 from setuptools import find_packages, setup
+import os
+from glob import glob
 
 package_name = 'p2-drone-formation-control-simulator'
 
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name), glob('launch/*.launch.py'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -21,6 +24,8 @@ setup(
     entry_points={
         'console_scripts': [
             'cmd_pub = p2_drone_formation_control_simulator.test:main',
+            'cmd_node = p2_drone_formation_control_simulator.cmd_node:main',
+            'gui_node = p2_drone_formation_control_simulator.gui_node:main',
         ],
     },
 )
