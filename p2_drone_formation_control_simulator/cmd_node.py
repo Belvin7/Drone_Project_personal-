@@ -11,6 +11,7 @@ class CmdVel(Node):
 
         # variables
         #self.i = 0
+        # TODO: check if we still need send_vel
         self.send_vel = False
         self.msg = TwistStamped()
         self.msg.header.stamp = self.get_clock().now().to_msg()
@@ -47,7 +48,10 @@ class CmdVel(Node):
             self.msg.twist.angular.z = 1.0
             self.send_vel = True
         elif msg_sub.data == 'stop':
-            self.send_vel = False 
+            self.msg.twist.linear.x = 0.0
+            self.msg.twist.angular.z = 0.0
+            # this causes problems drone does not stop at once
+            #self.send_vel = False 
  
     def timer_callback(self):
         if self.send_vel:
