@@ -113,6 +113,17 @@ Install according to their documentation
 
         ros2 service call /ap/experimental/takeoff  ardupilot_msgs/srv/Takeoff "{alt: 20.0}"
 
+
+--------------------
+
+### Shortened way to start sim : 
+
+1. cd to ardu_ws directory 
+2. `source ./install/setup.bash`
+3. `colcon build --packages-select p2-drone-formation-control-simulator`
+4. `ros2 launch ardupilot_gz_bringup iris_runway.launch.py`
+5. In another terminal 
+   `ros2 launch p2-drone-formation-control-simulator gui.launch.py`
 ## Usage
 - add later
 
