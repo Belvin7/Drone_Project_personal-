@@ -1,5 +1,7 @@
 from pathlib import Path
 
+
+import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
@@ -12,6 +14,10 @@ from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import GroupAction
+from launch_ros.actions import PushROSNamespace
+from launch.actions import RegisterEventHandler
+from launch.event_handlers import OnProcessStart
 
 
 def generate_launch_description():
@@ -30,6 +36,12 @@ def generate_launch_description():
         )
     )
 
+    iris_with_namespace = GroupAction(
+        actions=[
+            PushROSNamespace('iris1'),
+            iris,
+        ]
+    )
 
     # Iris2.
     iris2 = IncludeLaunchDescription(
@@ -37,6 +49,13 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare('p2-drone-formation-control-simulator'), 'launch', 'iris_member2.launch.py'])
         )
+    )
+
+    iris2_with_namespace = GroupAction(
+        actions=[
+            PushROSNamespace('iris2'),
+            iris2,
+        ]
     )
 
     # Gazebo.
@@ -130,18 +149,58 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration("rviz")),
     )
 
+    # Bridge.
+    bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        parameters=[
+            {
+                "config_file": os.path.join(
+                    pkg_project_bringup, "config", "iris_bridge.yaml"
+                ),
+                "qos_overrides./tf_static.publisher.durability": "transient_local",
+            }
+        ],
+        output="screen",
+    )
+
+    # Relay - use instead of transform when Gazebo is only publishing odom -> base_link
+    topic_tools_tf = Node(
+        package="topic_tools",
+        executable="relay",
+        arguments=[
+            "/gz/tf",
+            "/tf",
+        ],
+        output="screen",
+        respawn=False,
+        condition=IfCondition(LaunchConfiguration("use_gz_tf")),
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
-            "rviz", default_value="true", description="Open RViz."
+            "rviz", default_value="true", description="Open RViz.",
+        ),
+        DeclareLaunchArgument(
+            "use_gz_tf", default_value="true", description="Use Gazebo TF."
         ),
         gz_sim_server,
         gz_sim_gui,
-        iris,
-        iris2,
+        iris_with_namespace,
+        iris2_with_namespace,
         #sitl_1,
         #sitl_2,
         #mavproxy_1,
         #mavproxy_2,
         #rviz,
+        bridge,
+        RegisterEventHandler(
+            OnProcessStart(
+                target_action=bridge,
+                on_start=[
+                    topic_tools_tf
+                ]
+            )
+        ),
     ])
 

@@ -183,19 +183,19 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            DeclareLaunchArgument(
-                "use_gz_tf", default_value="true", description="Use Gazebo TF."
-            ),
+            #DeclareLaunchArgument(
+            #    "use_gz_tf", default_value="true", description="Use Gazebo TF."
+            #),
             sitl_dds,
             robot_state_publisher,
-            bridge,
-            RegisterEventHandler(
-                OnProcessStart(
-                    target_action=bridge,
-                    on_start=[
-                        topic_tools_tf
-                    ]
-                )
-            ),
+            #bridge,
+            #RegisterEventHandler(
+            #    OnProcessStart(
+            #        target_action=bridge,
+            #        on_start=[
+            #            topic_tools_tf
+            #        ]
+            #    )
+            #),
         ]
     )

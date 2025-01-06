@@ -136,19 +136,19 @@ def generate_launch_description():
     )
 
     # Bridge.
-    bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        parameters=[
-            {
-                "config_file": os.path.join(
-                    pkg_project_bringup, "config", "iris_bridge.yaml"
-                ),
-                "qos_overrides./tf_static.publisher.durability": "transient_local",
-            }
-        ],
-        output="screen",
-    )
+    #bridge = Node(
+    #    package="ros_gz_bridge",
+    #    executable="parameter_bridge",
+    #    parameters=[
+    #        {
+    #            "config_file": os.path.join(
+    #                pkg_project_bringup, "config", "iris_bridge.yaml"
+    #            ),
+    #            "qos_overrides./tf_static.publisher.durability": "transient_local",
+    #        }
+    #    ],
+    #    output="screen",
+    #)
 
     # Transform - use if the model includes "gz::sim::systems::PosePublisher"
     #             and a filter is required.
@@ -183,19 +183,19 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            DeclareLaunchArgument(
-                "use_gz_tf", default_value="true", description="Use Gazebo TF."
-            ),
+            #DeclareLaunchArgument(
+            #    "use_gz_tf", default_value="true", description="Use Gazebo TF."
+            #),
             sitl_dds,
             robot_state_publisher,
-            bridge,
-            RegisterEventHandler(
-                OnProcessStart(
-                    target_action=bridge,
-                    on_start=[
-                        topic_tools_tf
-                    ]
-                )
-            ),
+            #bridge,
+            #RegisterEventHandler(
+            #    OnProcessStart(
+            #        target_action=bridge,
+            #        on_start=[
+            #            topic_tools_tf
+            #        ]
+            #    )
+            #),
         ]
     )
