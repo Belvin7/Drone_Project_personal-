@@ -60,6 +60,7 @@ def generate_launch_description():
     pkg_ardupilot_sitl = get_package_share_directory("ardupilot_sitl")
     pkg_ardupilot_gazebo = get_package_share_directory("ardupilot_gazebo")
     pkg_project_bringup = get_package_share_directory("ardupilot_gz_bringup")
+    pkg_p2 = get_package_share_directory("p2-drone-formation-control-simulator")
 
     # Include component launch files.
     sitl_dds = IncludeLaunchDescription(
@@ -76,8 +77,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             "transport": "udp4",
-            "port": "2029",
             "synthetic_clock": "True",
+            "port:2029"
             "wipe": "False",
             "model": "json",
             "speedup": "1",
@@ -85,9 +86,9 @@ def generate_launch_description():
             "instance": "1",
             "sysid": "2",
             "defaults": os.path.join(
-                pkg_ardupilot_gazebo,
-                "config",
-                "gazebo-iris-gimbal.parm",
+                pkg_p2,
+                "parameters",
+                "gazebo-iris2.parm",
             )
             + ","
             + os.path.join(
@@ -117,7 +118,8 @@ def generate_launch_description():
 
     # Load SDF file.
     sdf_file = os.path.join(
-        pkg_ardupilot_gazebo, "models", "iris_with_gimbal", "model.sdf"
+        #pkg_ardupilot_gazebo, "models", "iris_with_gimbal", "model.sdf"
+        pkg_p2, "models", "iris2", "model.sdf"
     )
     with open(sdf_file, "r") as infp:
         robot_desc = infp.read()
@@ -131,7 +133,7 @@ def generate_launch_description():
         output="both",
         parameters=[
             {"robot_description": robot_desc},
-            {"frame_prefix": ""},
+            {"frame_prefix": "iris2"},
         ],
     )
 

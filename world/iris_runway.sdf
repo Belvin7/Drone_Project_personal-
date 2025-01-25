@@ -73,19 +73,19 @@
     </include>
 
     <include>
-      <uri>model://iris_with_gimbal</uri>
-      <name>iris</name>
+      <uri>model://iris1</uri>
+      <name>iris1</name>
       <pose degrees="true">0 0 0.195 0 0 90</pose>
     </include>
 
     <include>
-      <uri>model://iris_with_gimbal</uri>
+      <uri>model://iris2</uri>
       <name>iris2</name>
       <pose degrees="true">2 0 0.195 0 0 90</pose>
     </include>
 
     <include>
-      <uri>model://iris_with_gimbal</uri>
+      <uri>model://iris3</uri>
       <name>iris3</name>
       <pose degrees="true">4 0 0.195 0 0 90</pose>
     </include>

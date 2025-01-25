@@ -15,7 +15,7 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.actions import GroupAction
-from launch_ros.actions import PushROSNamespace
+from launch_ros.actions import PushROSNamespace,SetRemap
 from launch.actions import RegisterEventHandler
 from launch.event_handlers import OnProcessStart
 
@@ -39,6 +39,7 @@ def generate_launch_description():
     iris_with_namespace = GroupAction(
         actions=[
             PushROSNamespace('iris1'),
+            #SetRemap(src='/ap/', dst='/iris1/'),
             iris,
         ]
     )
@@ -78,42 +79,60 @@ def generate_launch_description():
 
 
     # Define launch descriptions for multiple SITL instances
-    #sitl_1 = IncludeLaunchDescription(
-    #    PythonLaunchDescriptionSource(
-    #        PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'sitl.launch.py'])
-    #    ),
-    #    launch_arguments={
-    #        'model': 'quad',
-    #        'speedup': '1',
-    #        'synthetic_clock': 'True',
-    #        'wipe': 'False',
-    #        'instance': '0',
-    #        'serial1': 'uart:/dev/ttyS1',
-    #        'sim_address': '127.0.0.1',
-    #        'master': 'tcp:127.0.0.1:5760',
-    #        'sitl': '127.0.0.1:5501',
-    #        'sysid': '1'
-    #
-    #    }.items()
-    #)
+    sitl_1 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'sitl.launch.py'])
+        ),
+        launch_arguments={
+            'model': 'quad',
+            'speedup': '1',
+            'synthetic_clock': 'True',
+            'wipe': 'False',
+            'instance': '0',
+            'serial1': 'uart:/dev/ttyS1',
+            'sim_address': '127.0.0.1',
+            'master': 'tcp:127.0.0.1:5760',
+            'sitl': '127.0.0.1:5501',
+            'sysid': '1'
 
-    #sitl_2 = IncludeLaunchDescription(
-    #    PythonLaunchDescriptionSource(
-    #        PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'sitl.launch.py'])
-    #    ),
-    #    launch_arguments={
-    #        'model': 'quad',
-    #        'speedup': '1',
-    #        'synthetic_clock': 'True',
-    #        'wipe': 'False',
-    #        'instance': '1',
-    #        'serial1': 'uart:/dev/ttyS2',
-    #        'sim_address': '127.0.0.1',
-    #        'master': 'tcp:127.0.0.1:5760',
-    #        'sitl': '127.0.0.1:5502',
-    #        'sysid': '2'
-    #    }.items()
-    #)
+        }.items()
+    )
+
+    sitl_2 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'sitl.launch.py'])
+        ),
+        launch_arguments={
+            'model': 'quad',
+            'speedup': '1',
+            'synthetic_clock': 'True',
+            'wipe': 'False',
+            'instance': '1',
+            'serial1': 'uart:/dev/ttyS2',
+            'sim_address': '127.0.0.1',
+            'master': 'tcp:127.0.0.1:5770',
+            'sitl': '127.0.0.1:5511',
+            'sysid': '2'
+        }.items()
+    )
+
+    sitl_3 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'sitl.launch.py'])
+        ),
+        launch_arguments={
+            'model': 'quad',
+            'speedup': '1',
+            'synthetic_clock': 'True',
+            'wipe': 'False',
+            'instance': '2',
+            'serial1': 'uart:/dev/ttyS3',
+            'sim_address': '127.0.0.1',
+            'master': 'tcp:127.0.0.1:5780',
+            'sitl': '127.0.0.1:5521',
+            'sysid': '3'
+        }.items()
+    )
 
     # MAVProxy for first drone
     mavproxy_1 = IncludeLaunchDescription(
@@ -121,7 +140,7 @@ def generate_launch_description():
             PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'mavproxy.launch.py'])
         ),
         launch_arguments={
-            'map': 'True',
+            'map': 'False',
             'console': 'True',
             'master': 'tcp:127.0.0.1:5760',
             'sitl': '127.0.0.1:5501'
@@ -129,17 +148,17 @@ def generate_launch_description():
     )
 
     # MAVProxy for second drone
-    #mavproxy_2 = IncludeLaunchDescription(
-    #    PythonLaunchDescriptionSource(
-    #        PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'mavproxy.launch.py'])
-    #    ),
-    #    launch_arguments={
-    #        'map': 'True',
-    #        'console': 'True',
-    #        'master': 'tcp:127.0.0.1:5770',
-    #        'sitl': '127.0.0.1:5502'
-    #    }.items()
-    #)
+    mavproxy_2 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'mavproxy.launch.py'])
+        ),
+        launch_arguments={
+            'map': 'False',
+            'console': 'True',
+            'master': 'tcp:127.0.0.1:5770',
+            'sitl': '127.0.0.1:5511'
+        }.items()
+    )
 
     # RViz for map visualization for first drone
     rviz = Node(
@@ -184,23 +203,23 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "use_gz_tf", default_value="true", description="Use Gazebo TF."
         ),
-        gz_sim_server,
-        gz_sim_gui,
-        iris_with_namespace,
-        iris2_with_namespace,
-        #sitl_1,
-        #sitl_2,
-        #mavproxy_1,
-        #mavproxy_2,
+        #gz_sim_server,
+        #gz_sim_gui,
+        #iris_with_namespace,
+        #iris2_with_namespace,
+        sitl_1,
+        sitl_2,
+        mavproxy_1,
+        mavproxy_2,
         #rviz,
-        bridge,
-        RegisterEventHandler(
-            OnProcessStart(
-                target_action=bridge,
-                on_start=[
-                    topic_tools_tf
-                ]
-            )
-        ),
+        #bridge,
+        #RegisterEventHandler(
+        #    OnProcessStart(
+        #        target_action=bridge,
+        #        on_start=[
+        #            topic_tools_tf
+        #        ]
+        #    )
+        #),
     ])
 

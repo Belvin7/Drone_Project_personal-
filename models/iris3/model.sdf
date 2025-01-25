@@ -1,6 +1,6 @@
 <?xml version='1.0'?>
 <sdf version="1.9">
-  <model name="iris3">
+  <model name="iris">
     <include merge="true">
       <uri>package://ardupilot_gazebo/models/iris_with_standoffs</uri>
       <name>iris3</name>

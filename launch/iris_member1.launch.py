@@ -52,6 +52,8 @@ from launch.substitutions import PathJoinSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.actions import GroupAction
+from launch_ros.actions import SetRemap
 
 
 
@@ -60,47 +62,65 @@ def generate_launch_description():
     pkg_ardupilot_sitl = get_package_share_directory("ardupilot_sitl")
     pkg_ardupilot_gazebo = get_package_share_directory("ardupilot_gazebo")
     pkg_project_bringup = get_package_share_directory("ardupilot_gz_bringup")
+    pkg_p2 = get_package_share_directory("p2-drone-formation-control-simulator")
 
     # Include component launch files.
-    sitl_dds = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                PathJoinSubstitution(
+    sitl_dds = GroupAction(
+        actions=[
+            #SetRemap(src='/ap', dst='/iris1'),
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
                     [
-                        FindPackageShare("ardupilot_sitl"),
-                        "launch",
-                        "sitl_dds_udp.launch.py",
+                        PathJoinSubstitution(
+                            [
+                                FindPackageShare("ardupilot_sitl"),
+                                "launch",
+                                "sitl_dds_udp.launch.py",
+                            ]
+                        ),
                     ]
                 ),
-            ]
-        ),
-        launch_arguments={
-            "transport": "udp4",
-            "port": "2019",
-            "synthetic_clock": "True",
-            "wipe": "False",
-            "model": "json",
-            "speedup": "1",
-            "slave": "0",
-            "instance": "0",
-            "sysid": "1",
-            "defaults": os.path.join(
-                pkg_ardupilot_gazebo,
-                "config",
-                "gazebo-iris-gimbal.parm",
+                launch_arguments={
+                    #"micro_ros_agent_ns":"iris1",
+                    "transport": "udp4",
+                    "synthetic_clock": "True",
+                    "port:2019"
+                    "wipe": "False",
+                    "model": "json",
+                    "speedup": "1",
+                    "slave": "0",
+                    "instance": "0",
+                    "sysid": "1",
+                    "defaults": os.path.join(
+                        pkg_p2,
+                        "parameters",
+                        "gazebo-iris1.parm",
+                    )
+                    + ","
+                    + os.path.join(
+                        pkg_ardupilot_sitl,
+                        "config",
+                        "default_params",
+                        "dds_udp.parm",
+                    ),
+                    "sim_address": "127.0.0.1",
+                    "master": "tcp:127.0.0.1:5760",
+                    "sitl": "127.0.0.1:5501",
+                }.items(),
             )
-            + ","
-            + os.path.join(
-                pkg_ardupilot_sitl,
-                "config",
-                "default_params",
-                "dds_udp.parm",
-            ),
-            "sim_address": "127.0.0.1",
-            "master": "tcp:127.0.0.1:5760",
-            "sitl": "127.0.0.1:5501",
-        }.items(),
+        ]
     )
+
+    #Node(
+    #    package='demo_nodes_cpp',  # The package containing the node
+    #    executable='talker',  # The name of the executable
+    #    name='talker_node',  # A unique name for this node instance
+    #    remappings=[
+    #        # Remap the default '/chatter' topic to '/conversation'
+    #        ('/chatter', '/conversation'),
+    #    ],
+    #    output='screen'  # Display node output in the terminal
+    #),
 
     # Robot description.
 
@@ -117,7 +137,8 @@ def generate_launch_description():
 
     # Load SDF file.
     sdf_file = os.path.join(
-        pkg_ardupilot_gazebo, "models", "iris_with_gimbal", "model.sdf"
+        #pkg_ardupilot_gazebo, "models", "iris_with_gimbal", "model.sdf"
+        pkg_p2, "models", "iris1", "model.sdf"
     )
     with open(sdf_file, "r") as infp:
         robot_desc = infp.read()
