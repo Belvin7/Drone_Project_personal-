@@ -25,37 +25,129 @@ def generate_launch_description():
 
     """Generate a launch description for a iris quadcopter."""
     pkg_project_bringup = get_package_share_directory("ardupilot_gz_bringup")
-    pkg_project_gazebo = get_package_share_directory("ardupilot_gz_gazebo")
     pkg_ros_gz_sim = get_package_share_directory("ros_gz_sim")
     pkg_p2 = get_package_share_directory("p2-drone-formation-control-simulator")
 
-    # Iris.
-    iris = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare('p2-drone-formation-control-simulator'), 'launch', 'iris_member1.launch.py'])
-        )
+
+    # Robot description 1.
+
+    # Ensure `SDF_PATH` is populated as `sdformat_urdf`` uses this rather
+    # than `GZ_SIM_RESOURCE_PATH` to locate resources.
+    if "GZ_SIM_RESOURCE_PATH" in os.environ:
+        gz_sim_resource_path = os.environ["GZ_SIM_RESOURCE_PATH"]
+
+        if "SDF_PATH" in os.environ:
+            sdf_path = os.environ["SDF_PATH"]
+            os.environ["SDF_PATH"] = sdf_path + ":" + gz_sim_resource_path
+        else:
+            os.environ["SDF_PATH"] = gz_sim_resource_path
+
+    # Load SDF file.
+    sdf_file = os.path.join(
+        pkg_p2, "models", "iris1", "model.sdf"
+    )
+    with open(sdf_file, "r") as infp:
+        robot_desc = infp.read()
+        # print(robot_desc)
+
+    # Publish /tf and /tf_static.
+    robot_state_publisher1 = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher",
+        output="both",
+        parameters=[
+            {"robot_description": robot_desc},
+            {"frame_prefix": ""},
+        ],
     )
 
     iris_with_namespace = GroupAction(
         actions=[
             PushROSNamespace('iris1'),
-            #SetRemap(src='/ap/', dst='/iris1/'),
-            iris,
+            robot_state_publisher1,
         ]
     )
 
-    # Iris2.
-    iris2 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [FindPackageShare('p2-drone-formation-control-simulator'), 'launch', 'iris_member2.launch.py'])
-        )
+    # Robot description 2.
+
+    # Ensure `SDF_PATH` is populated as `sdformat_urdf`` uses this rather
+    # than `GZ_SIM_RESOURCE_PATH` to locate resources.
+    if "GZ_SIM_RESOURCE_PATH" in os.environ:
+        gz_sim_resource_path = os.environ["GZ_SIM_RESOURCE_PATH"]
+
+        if "SDF_PATH" in os.environ:
+            sdf_path = os.environ["SDF_PATH"]
+            os.environ["SDF_PATH"] = sdf_path + ":" + gz_sim_resource_path
+        else:
+            os.environ["SDF_PATH"] = gz_sim_resource_path
+
+    # Load SDF file.
+    sdf_file = os.path.join(
+        #pkg_ardupilot_gazebo, "models", "iris_with_gimbal", "model.sdf"
+        pkg_p2, "models", "iris2", "model.sdf"
+    )
+    with open(sdf_file, "r") as infp:
+        robot_desc = infp.read()
+        # print(robot_desc)
+
+    # Publish /tf and /tf_static.
+    robot_state_publisher2 = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher",
+        output="both",
+        parameters=[
+            {"robot_description": robot_desc},
+            {"frame_prefix": ""},
+        ],
     )
 
     iris2_with_namespace = GroupAction(
         actions=[
             PushROSNamespace('iris2'),
-            iris2,
+            robot_state_publisher2,
+        ]
+    )
+
+    # Robot description 3.
+
+    # Ensure `SDF_PATH` is populated as `sdformat_urdf`` uses this rather
+    # than `GZ_SIM_RESOURCE_PATH` to locate resources.
+    if "GZ_SIM_RESOURCE_PATH" in os.environ:
+        gz_sim_resource_path = os.environ["GZ_SIM_RESOURCE_PATH"]
+
+        if "SDF_PATH" in os.environ:
+            sdf_path = os.environ["SDF_PATH"]
+            os.environ["SDF_PATH"] = sdf_path + ":" + gz_sim_resource_path
+        else:
+            os.environ["SDF_PATH"] = gz_sim_resource_path
+
+    # Load SDF file.
+    sdf_file = os.path.join(
+        #pkg_ardupilot_gazebo, "models", "iris_with_gimbal", "model.sdf"
+        pkg_p2, "models", "iris3", "model.sdf"
+    )
+    with open(sdf_file, "r") as infp:
+        robot_desc = infp.read()
+        # print(robot_desc)
+
+    # Publish /tf and /tf_static.
+    robot_state_publisher3 = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher",
+        output="both",
+        parameters=[
+            {"robot_description": robot_desc},
+            {"frame_prefix": ""},
+        ],
+    )
+
+    iris3_with_namespace = GroupAction(
+        actions=[
+            PushROSNamespace('iris3'),
+            robot_state_publisher3,
         ]
     )
 
@@ -75,89 +167,6 @@ def generate_launch_description():
             f'{Path(pkg_ros_gz_sim) / "launch" / "gz_sim.launch.py"}'
         ),
         launch_arguments={"gz_args": "-v4 -g"}.items(),
-    )
-
-
-    # Define launch descriptions for multiple SITL instances
-    sitl_1 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'sitl.launch.py'])
-        ),
-        launch_arguments={
-            'model': 'quad',
-            'speedup': '1',
-            'synthetic_clock': 'True',
-            'wipe': 'False',
-            'instance': '0',
-            'serial1': 'uart:/dev/ttyS1',
-            'sim_address': '127.0.0.1',
-            'master': 'tcp:127.0.0.1:5760',
-            'sitl': '127.0.0.1:5501',
-            'sysid': '1'
-
-        }.items()
-    )
-
-    sitl_2 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'sitl.launch.py'])
-        ),
-        launch_arguments={
-            'model': 'quad',
-            'speedup': '1',
-            'synthetic_clock': 'True',
-            'wipe': 'False',
-            'instance': '1',
-            'serial1': 'uart:/dev/ttyS2',
-            'sim_address': '127.0.0.1',
-            'master': 'tcp:127.0.0.1:5770',
-            'sitl': '127.0.0.1:5511',
-            'sysid': '2'
-        }.items()
-    )
-
-    sitl_3 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'sitl.launch.py'])
-        ),
-        launch_arguments={
-            'model': 'quad',
-            'speedup': '1',
-            'synthetic_clock': 'True',
-            'wipe': 'False',
-            'instance': '2',
-            'serial1': 'uart:/dev/ttyS3',
-            'sim_address': '127.0.0.1',
-            'master': 'tcp:127.0.0.1:5780',
-            'sitl': '127.0.0.1:5521',
-            'sysid': '3'
-        }.items()
-    )
-
-    # MAVProxy for first drone
-    mavproxy_1 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'mavproxy.launch.py'])
-        ),
-        launch_arguments={
-            'map': 'False',
-            'console': 'True',
-            'master': 'tcp:127.0.0.1:5760',
-            'sitl': '127.0.0.1:5501'
-        }.items()
-    )
-
-    # MAVProxy for second drone
-    mavproxy_2 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([FindPackageShare('ardupilot_sitl'), 'launch', 'mavproxy.launch.py'])
-        ),
-        launch_arguments={
-            'map': 'False',
-            'console': 'True',
-            'master': 'tcp:127.0.0.1:5770',
-            'sitl': '127.0.0.1:5511'
-        }.items()
     )
 
     # RViz for map visualization for first drone
@@ -203,23 +212,20 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "use_gz_tf", default_value="true", description="Use Gazebo TF."
         ),
-        #gz_sim_server,
-        #gz_sim_gui,
-        #iris_with_namespace,
-        #iris2_with_namespace,
-        sitl_1,
-        sitl_2,
-        mavproxy_1,
-        mavproxy_2,
+        gz_sim_server,
+        gz_sim_gui,
+        iris_with_namespace,
+        iris2_with_namespace,
+        iris3_with_namespace,
         #rviz,
-        #bridge,
-        #RegisterEventHandler(
-        #    OnProcessStart(
-        #        target_action=bridge,
-        #        on_start=[
-        #            topic_tools_tf
-        #        ]
-        #    )
-        #),
+        bridge,
+        RegisterEventHandler(
+            OnProcessStart(
+                target_action=bridge,
+                on_start=[
+                    topic_tools_tf
+                ]
+            )
+        ),
     ])
 
