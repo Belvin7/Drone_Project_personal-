@@ -32,6 +32,9 @@ setup(
         'console_scripts': [
             'cmd_pub = p2_drone_formation_control_simulator.test:main',
             'cmd_node = p2_drone_formation_control_simulator.cmd_node:main',
+            'copter1_cmd_node = p2_drone_formation_control_simulator.copter1_cmd_node:main',
+            'copter2_cmd_node = p2_drone_formation_control_simulator.copter2_cmd_node:main',
+            'copter3_cmd_node = p2_drone_formation_control_simulator.copter3_cmd_node:main',
             'gui_node = p2_drone_formation_control_simulator.gui_node:main',
         ],
     },

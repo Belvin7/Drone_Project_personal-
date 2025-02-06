@@ -28,7 +28,7 @@ class CmdVel(Node):
         self.cmd_vel_publisher = self.create_publisher(TwistStamped, '/iris1/setpoint_velocity/cmd_vel', 10)
         
         # subscriber
-        self.cmd_subscriber = self.create_subscription(String, 'p2/cmd', self.cmd_listener,10)
+        self.cmd_subscriber = self.create_subscription(String, 'p2/copter1_cmd', self.cmd_listener,10)
 
         # timer with callback
         timer_period = 0.1
