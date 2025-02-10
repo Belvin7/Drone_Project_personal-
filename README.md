@@ -79,6 +79,11 @@ Install according to their documentation
     wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh
     ./install_geographiclib_datasets.sh
 
+31. Add these to your .bashrc to source the models created in the project for Gazebo
+    export GZ_SIM_SYSTEM_PLUGIN_PATH=:/home/"your path to the project"/src/p2-drone-formation-control-simulator/models:
+    export GZ_SIM_RESOURCE_PATH=:/home/"your path to the project"/src/p2-drone-formation-control-simulator/models:
+
+
 
 ## start simulation
 
