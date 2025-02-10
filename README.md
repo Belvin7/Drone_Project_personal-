@@ -71,6 +71,15 @@ Install according to their documentation
     - replace "sdformat_urdf" with jazzy branch "https://github.com/ros/sdformat_urdf/tree/jazzy" 
     - package "ardupilot_gz" also  
 
+29. Install MAVROS with "sudo apt install ros-jazzy-mavros"
+30.  Install Geographic lib
+    -> ros2 run mavros install_geographiclib_datasets.sh
+
+    # Alternative:
+    wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh
+    ./install_geographiclib_datasets.sh
+
+
 ## start simulation
 
 - to prevent clutter I made a separate folder where we start the terminals mentioned in the steps below
@@ -121,7 +130,7 @@ Install according to their documentation
 1. cd to ardu_ws directory 
 2. `source ./install/setup.bash`
 3. `colcon build --packages-select p2-drone-formation-control-simulator`
-4. `ros2 launch ardupilot_gz_bringup iris_runway.launch.py`
+4. `start the script start_all.sh in the launch folder`
 5. In another terminal 
    `ros2 launch p2-drone-formation-control-simulator gui.launch.py`
 ## Usage
