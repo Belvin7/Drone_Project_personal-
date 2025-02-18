@@ -425,7 +425,7 @@ class P2(Node):
     def takeoff_with_timeout(self, alt: int, timeout: rclpy.duration.Duration, drone):
         takeoff_success = False
         start = self.get_clock().now()
-        while not takeoff_success:
+        while not takeoff_success and self.get_clock().now() - start < timeout:
             result = self.takeoff(alt, drone)
             takeoff_success = result.success
             time.sleep(1)

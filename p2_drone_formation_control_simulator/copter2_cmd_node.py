@@ -10,9 +10,8 @@ class CmdVel(Node):
         super().__init__('cmd_vel')
 
         # variables
-        #self.i = 0
-        # TODO: check if we still need send_vel
         self.send_vel = False
+        self.send_delay = False
         self.msg = TwistStamped()
         self.msg.header.stamp = self.get_clock().now().to_msg()
         self.msg.header.frame_id = 'base_link'
@@ -35,43 +34,41 @@ class CmdVel(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def cmd_listener(self, msg_sub):
-        self.get_logger().info('cmd = %s' % msg_sub.data)
+        #self.get_logger().info('cmd = %s' % msg_sub.data)
         if msg_sub.data == 'start':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 3.0
             self.msg.twist.angular.z = 0.0
             self.send_vel = True
+            self.send_delay = True
         elif msg_sub.data == 'right':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = -1.0
             self.send_vel = True
+            self.send_delay = True
         elif msg_sub.data == 'left':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = 1.0
             self.send_vel = True
+            self.send_delay = True
         elif msg_sub.data == 'stop':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = 0.0
-            # this causes problems drone does not stop at once
-            #self.send_vel = False 
+            self.send_vel = False 
  
     def timer_callback(self):
-        if self.send_vel:
-            #msg = TwistStamped()
+        if self.send_vel and self.send_delay:
             self.msg.header.stamp = self.get_clock().now().to_msg()
-            #msg.header.frame_id = 'base_link'
-            #msg.twist.linear.x = 3.
-            #msg.twist.linear.y = 0.
-            #msg.twist.linear.z = 0.
-            #msg.twist.angular.x = 0.
-            #msg.twist.angular.y = 0.
-            #msg.twist.angular.z = 0.
             self.cmd_vel_publisher.publish(self.msg)
-            #self.get_logger().info('Publishing: "%s"' % msg)
-            #self.i += 1
+            #self.get_logger().info('Publishing: "%s"' % self.msg)
+        elif not self.send_vel and self.send_delay:
+            self.msg.header.stamp = self.get_clock().now().to_msg()
+            self.cmd_vel_publisher.publish(self.msg)
+            #self.get_logger().info('Publishing: "%s"' % self.msg)
+            self.send_delay = False
 
 
 def main(args=None):
