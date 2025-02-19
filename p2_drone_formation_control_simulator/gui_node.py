@@ -439,7 +439,7 @@ class P2(Node):
         self.arm_with_timeout(rclpy.duration.Duration(seconds=1), 1)
 
     def takeoff1_clicked(self):
-        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=4), 1)
+        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=2), 1)
 
     def start1_clicked(self):
         msg = String()
@@ -478,7 +478,7 @@ class P2(Node):
         self.arm_with_timeout(rclpy.duration.Duration(seconds=1), 2)
 
     def takeoff2_clicked(self):
-        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=4), 2)
+        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=2), 2)
 
     def start2_clicked(self):
         msg = String()
@@ -517,7 +517,7 @@ class P2(Node):
         self.arm_with_timeout(rclpy.duration.Duration(seconds=1), 3)
 
     def takeoff3_clicked(self):
-        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=4), 3)
+        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=2), 3)
 
     def start3_clicked(self):
         msg = String()

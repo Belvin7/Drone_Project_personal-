@@ -2,8 +2,10 @@ import rclpy
 import time 
 from rclpy.node import Node
 
-from std_msgs.msg import String
+import numpy as np
+from std_msgs.msg import String, Float64
 from geometry_msgs.msg import TwistStamped
+from sensor_msgs.msg import NavSatFix
  
 class CmdVel(Node):
     def __init__(self):
@@ -22,12 +24,30 @@ class CmdVel(Node):
         self.msg.twist.angular.y = 0.
         self.msg.twist.angular.z = 0.
 
+        # variables for kalman-filter
+        self.follow_lat = 0.
+        self.follow_log = 0.
+        self.follow_alt = 0.
+        self.follow_cov = np.zeros(9)
+        self.follow_angle = 0.
+
         # publisher
         #self.cmd_vel_publisher = self.create_publisher(TwistStamped, '/iris3/setpoint_attitude/cmd_vel', 10)
         self.cmd_vel_publisher = self.create_publisher(TwistStamped, '/iris3/setpoint_velocity/cmd_vel', 10)
         
         # subscriber
-        self.cmd_subscriber = self.create_subscription(String, 'p2/copter3_cmd', self.cmd_listener,10)
+        self.cmd_subscriber = self.create_subscription(String, 
+                                                       'p2/copter3_cmd', 
+                                                       self.cmd_listener,
+                                                       10)
+        self.pos_copter1_subscriber = self.create_subscription(NavSatFix,
+                                                               'iris1/global_position/global',
+                                                               self.pos_copter1_listener,
+                                                               rclpy.qos.qos_profile_sensor_data)
+        self.angle_copter1_subscriber = self.create_subscription(Float64,
+                                                                 'iris1/global_position/compass_hdg',
+                                                                 self.angle_copter1_listener,
+                                                                 rclpy.qos.qos_profile_sensor_data)
 
         # timer with callback
         timer_period = 0.1
@@ -59,6 +79,19 @@ class CmdVel(Node):
             self.msg.twist.angular.z = 0.0
             self.send_vel = False 
  
+    def pos_copter1_listener(self, msg_sub):
+        #if self.send_vel:
+        #    self.get_logger().info('copter3: copter1.latitude  = %f' % msg_sub.latitude)
+        #    self.get_logger().info('copter3: copter1.longitude = %f' % msg_sub.longitude)
+        #    self.get_logger().info('copter3: copter1.altitude  = %f' % msg_sub.altitude)
+        self.follow_lat = msg_sub.latitude
+        self.follow_log = msg_sub.longitude
+        self.follow_alt = msg_sub.altitude
+        self.follow_cov = msg_sub.position_covariance
+
+    def angle_copter1_listener(self, msg_sub):
+        self.follow_angle = msg_sub
+
     def timer_callback(self):
         if self.send_vel and self.send_delay:
             self.msg.header.stamp = self.get_clock().now().to_msg()
