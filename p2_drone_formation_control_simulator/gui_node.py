@@ -86,9 +86,11 @@ class P2(Node):
         l1 = tk.Label(self.window, text = "Copter 1")
         l2 = tk.Label(self.window, text = "Copter 2")
         l3 = tk.Label(self.window, text = "Copter 3")
+        l4 = tk.Label(self.window, text = "All Copters")
         l1.grid(column=0, row=0, pady=0)
         l2.grid(column=1, row=0, pady=0)
         l3.grid(column=2, row=0, pady=0)
+        l4.grid(column=3, row=0, pady=0)
 
         ## first drone
         # guided button
@@ -363,6 +365,96 @@ class P2(Node):
         )
         land3_button.grid(column=2, row=9, padx=10, pady=0)
 
+        # guided button
+        guided4_button = tk.Button(self.window,
+                                   text='Guided-mode',
+                                   command=self.guided4_clicked,
+                                   padx=10,
+                                   pady=5,
+                                   width=15
+                                   )
+        guided4_button.grid(column=3, row=1, padx=10, pady=0)
+
+        # arm button
+        arm4_button = tk.Button(self.window,
+                                text='Arm',
+                                command=self.arm4_clicked,
+                                padx=10,
+                                pady=5,
+                                width=15
+                                )
+        arm4_button.grid(column=3, row=2, padx=10, pady=0)
+
+        # create takeoff button
+        takeoff4_button = tk.Button(self.window,
+                                    text='Takeoff',
+                                    command=self.takeoff4_clicked,
+                                    padx=10,
+                                    pady=5,
+                                    width=15
+                                    )
+        takeoff4_button.grid(column=3, row=3, padx=10, pady=0)
+
+        # start moving button
+        start4_button = tk.Button(self.window,
+                                  text='Start',
+                                  command=self.start4_clicked,
+                                  padx=10,
+                                  pady=5,
+                                  width=15
+                                  )
+        start4_button.grid(column=3, row=4, padx=10, pady=0)
+
+        # left turning button
+        left4_button = tk.Button(self.window,
+                                 text='Left-turning',
+                                 command=self.left4_clicked,
+                                 padx=10,
+                                 pady=5,
+                                 width=15
+                                 )
+        left4_button.grid(column=3, row=5, padx=10, pady=0)
+
+        # right turning button
+        right4_button = tk.Button(self.window,
+                                  text='Right-turning',
+                                  command=self.right4_clicked,
+                                  padx=10,
+                                  pady=5,
+                                  width=15
+                                  )
+        right4_button.grid(column=3, row=6, padx=10, pady=0)
+
+        # stop moving button
+        stop4_button = tk.Button(self.window,
+                                 text='Stop',
+                                 command=self.stop4_clicked,
+                                 padx=10,
+                                 pady=5,
+                                 width=15
+                                 )
+        stop4_button.grid(column=3, row=7, padx=10, pady=0)
+
+        # return-to-launch button
+        rtl4_button = tk.Button(self.window,
+                                text='RTL',
+                                command=self.rtl4_clicked,
+                                padx=10,
+                                pady=5,
+                                width=15
+                                )
+        rtl4_button.grid(column=3, row=8, padx=10, pady=0)
+
+        # land button
+        land4_button = tk.Button(self.window,
+                                 text='Land',
+                                 command=self.land4_clicked,
+                                 padx=10,
+                                 pady=5,
+                                 width=15
+                                 )
+        land4_button.grid(column=3, row=9, padx=10, pady=0)
+
         self.window.mainloop()
 
     def switch_mode(self, mode, drone):
@@ -397,7 +489,6 @@ class P2(Node):
             future = self.copter2_client_arm.call_async(req)
         if drone == 3:
             future = self.copter3_client_arm.call_async(req)
-        rclpy.spin_until_future_complete(self, future)
         return future.result()
 
     def arm_with_timeout(self, timeout: rclpy.duration.Duration, drone):
@@ -549,6 +640,62 @@ class P2(Node):
     def land3_clicked(self):
         self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 3)
 
+    def guided4_clicked(self):
+        self.switch_mode_with_timeout("GUIDED",rclpy.duration.Duration(seconds=1), 1)
+        self.switch_mode_with_timeout("GUIDED", rclpy.duration.Duration(seconds=1), 2)
+        self.switch_mode_with_timeout("GUIDED", rclpy.duration.Duration(seconds=1), 3)
+
+    def arm4_clicked(self):
+        self.arm(1)
+        self.arm(2)
+        self.arm(3)
+
+    def takeoff4_clicked(self):
+        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=2), 1)
+        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=2), 2)
+        self.takeoff_with_timeout(30.0, rclpy.duration.Duration(seconds=2), 3)
+
+    def start4_clicked(self):
+        msg = String()
+        msg.data = 'start'
+        self.copter1_cmd_publisher.publish(msg)
+        self.copter2_cmd_publisher.publish(msg)
+        self.copter3_cmd_publisher.publish(msg)
+        rclpy.spin_once(self, timeout_sec=0)
+
+    def left4_clicked(self):
+        msg = String()
+        msg.data = 'left'
+        self.copter1_cmd_publisher.publish(msg)
+        self.copter2_cmd_publisher.publish(msg)
+        self.copter3_cmd_publisher.publish(msg)
+        rclpy.spin_once(self, timeout_sec=0)
+
+    def right4_clicked(self):
+        msg = String()
+        msg.data = 'right'
+        self.copter1_cmd_publisher.publish(msg)
+        self.copter2_cmd_publisher.publish(msg)
+        self.copter3_cmd_publisher.publish(msg)
+        rclpy.spin_once(self, timeout_sec=0)
+
+    def stop4_clicked(self):
+        msg = String()
+        msg.data = 'stop'
+        self.copter1_cmd_publisher.publish(msg)
+        self.copter2_cmd_publisher.publish(msg)
+        self.copter3_cmd_publisher.publish(msg)
+        rclpy.spin_once(self, timeout_sec=0)
+
+    def rtl4_clicked(self):
+        self.switch_mode_with_timeout("RTL", rclpy.duration.Duration(seconds=1), 1)
+        self.switch_mode_with_timeout("RTL", rclpy.duration.Duration(seconds=1), 2)
+        self.switch_mode_with_timeout("RTL", rclpy.duration.Duration(seconds=1), 3)
+
+    def land4_clicked(self):
+        self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 1)
+        self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 2)
+        self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 3)
 
 def main(args=None):
     rclpy.init(args=args)
