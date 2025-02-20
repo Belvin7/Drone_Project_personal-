@@ -455,6 +455,15 @@ class P2(Node):
                                  )
         land4_button.grid(column=3, row=9, padx=10, pady=0)
 
+        formation_button = tk.Button(self.window,
+                                 text='Formation',
+                                 command=self.formation_clicked,
+                                 padx=10,
+                                 pady=5,
+                                 width=15
+                                 )
+        formation_button.grid(column=3, row=10, padx=10, pady=0)
+
         self.window.mainloop()
 
     def switch_mode(self, mode, drone):
@@ -641,7 +650,7 @@ class P2(Node):
         self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 3)
 
     def guided4_clicked(self):
-        self.switch_mode_with_timeout("GUIDED",rclpy.duration.Duration(seconds=1), 1)
+        self.switch_mode_with_timeout("GUIDED", rclpy.duration.Duration(seconds=1), 1)
         self.switch_mode_with_timeout("GUIDED", rclpy.duration.Duration(seconds=1), 2)
         self.switch_mode_with_timeout("GUIDED", rclpy.duration.Duration(seconds=1), 3)
 
@@ -696,6 +705,14 @@ class P2(Node):
         self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 1)
         self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 2)
         self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 3)
+
+    def formation_clicked(self):
+        msg = String()
+        msg.data = 'formation'
+        self.copter2_cmd_publisher.publish(msg)
+        self.copter3_cmd_publisher.publish(msg)
+        rclpy.spin_once(self, timeout_sec=0)
+
 
 def main(args=None):
     rclpy.init(args=args)

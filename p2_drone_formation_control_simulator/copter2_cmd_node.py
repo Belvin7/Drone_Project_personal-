@@ -5,6 +5,7 @@ from rclpy.node import Node
 import numpy as np
 from std_msgs.msg import String, Float64
 from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import NavSatFix
  
 class CmdVel(Node):
@@ -14,6 +15,7 @@ class CmdVel(Node):
         # variables
         self.send_vel = False
         self.send_delay = False
+        self.formation = False
         self.msg = TwistStamped()
         self.msg.header.stamp = self.get_clock().now().to_msg()
         self.msg.header.frame_id = 'base_link'
@@ -23,6 +25,9 @@ class CmdVel(Node):
         self.msg.twist.angular.x = 0.
         self.msg.twist.angular.y = 0.
         self.msg.twist.angular.z = 0.
+
+        self.leader_position = np.array((0, 0, 0))
+        self.own_position = np.array((2, 0, 0))
 
         # variables for kalman-filter
         self.follow_lat = 0.
@@ -50,10 +55,47 @@ class CmdVel(Node):
                                                                  'iris1/global_position/compass_hdg',
                                                                  self.angle_copter1_listener,
                                                                  rclpy.qos.qos_profile_sensor_data)
+        self.pos_leader_coord_subscriber = self.create_subscription(PoseStamped,
+                                                                    'iris1/local_position/pose',
+                                                                    self.lead_listener,
+                                                                    rclpy.qos.qos_profile_sensor_data)
+        self.pos_own = self.create_subscription(PoseStamped,
+                                               'iris2/local_position/pose',
+                                               self.own_listener,
+                                               rclpy.qos.qos_profile_sensor_data)
 
         # timer with callback
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
+
+    def lead_listener(self, msg_sub):
+        self.leader_position[0] = msg_sub.pose.position.x - 5
+        self.leader_position[1] = msg_sub.pose.position.y - 5
+        self.leader_position[2] = msg_sub.pose.position.z
+        #self.get_logger().info('y pos = %f ' % msg_sub.pose.position.y)
+
+    def own_listener(self, msg_sub):
+        self.own_position[0] = msg_sub.pose.position.x + 2
+        self.own_position[1] = msg_sub.pose.position.y
+        self.own_position[2] = msg_sub.pose.position.z
+
+        if self.formation:
+            distance = np.linalg.norm(self.own_position - self.leader_position)
+            richtungsvektor = self.leader_position - self.own_position
+            norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
+            self.get_logger().info('Distanz Copter 3= %f ' % distance)
+            if distance > 1:
+                self.msg.twist.linear.x = float(norm_richt[0]) * 2
+                self.msg.twist.linear.y = float(norm_richt[1]) * 2
+                self.msg.twist.angular.z = float(norm_richt[2]) * 2
+                self.send_vel = True
+                self.send_delay = True
+
+            else:
+                self.msg.twist.linear.x = 0.0
+                self.msg.twist.linear.y = 0.0
+                self.msg.twist.angular.z = 0.0
+                self.send_vel = False
 
     def cmd_listener(self, msg_sub):
         #self.get_logger().info('cmd = %s' % msg_sub.data)
@@ -63,23 +105,29 @@ class CmdVel(Node):
             self.msg.twist.angular.z = 0.0
             self.send_vel = True
             self.send_delay = True
+            self.formation = False
         elif msg_sub.data == 'right':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = -1.0
             self.send_vel = True
             self.send_delay = True
+            self.formation = False
         elif msg_sub.data == 'left':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = 1.0
             self.send_vel = True
             self.send_delay = True
+            self.formation = False
         elif msg_sub.data == 'stop':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = 0.0
-            self.send_vel = False 
+            self.send_vel = False
+            self.formation = False
+        elif msg_sub.data == 'formation':
+            self.formation = True
  
     def pos_copter1_listener(self, msg_sub):
         #if self.send_vel:
