@@ -23,13 +23,14 @@ class CmdVel(Node):
         self.msg.twist.angular.x = 0.
         self.msg.twist.angular.y = 0.
         self.msg.twist.angular.z = 0.
+        self.orientation = 0.
 
         # variables for kalman-filter
         self.follow_lat = 0.
         self.follow_log = 0.
         self.follow_alt = 0.
         self.follow_cov = np.zeros(9)
-        self.follow_angle = 0.
+        self.follow_orientation = 0.
 
         # publisher
         #self.cmd_vel_publisher = self.create_publisher(TwistStamped, '/iris1/setpoint_attitude/cmd_vel', 10)
@@ -44,10 +45,15 @@ class CmdVel(Node):
                                                                'iris2/global_position/global',
                                                                self.pos_copter2_listener,
                                                                rclpy.qos.qos_profile_sensor_data)
-        self.angle_copter2_subscriber = self.create_subscription(Float64,
+        self.orientation_copter2_subscriber = self.create_subscription(Float64,
                                                                  'iris2/global_position/compass_hdg',
-                                                                 self.angle_copter2_listener,
+                                                                 self.orientation_copter2_listener,
                                                                  rclpy.qos.qos_profile_sensor_data)
+        self.orientation_copter1_subscriber = self.create_subscription(Float64,
+                                                                 'iris1/global_position/compass_hdg',
+                                                                 self.orientation_copter1_listener,
+                                                                 rclpy.qos.qos_profile_sensor_data)
+
 
         # timer with callback
         timer_period = 0.1
@@ -56,8 +62,8 @@ class CmdVel(Node):
     def cmd_listener(self, msg_sub):
         #self.get_logger().info('cmd = %s' % msg_sub.data)
         if msg_sub.data == 'start':
-            self.msg.twist.linear.x  = 0.0
-            self.msg.twist.linear.y  = 3.0
+            self.msg.twist.linear.x  = np.sin(2*np.pi/360 * float(self.orientation)) * 3.0 
+            self.msg.twist.linear.y  = np.cos(2*np.pi/360 * float(self.orientation)) * 3.0
             self.msg.twist.angular.z = 0.0
             self.send_vel = True
             self.send_delay = True
@@ -90,8 +96,11 @@ class CmdVel(Node):
         self.follow_alt = msg_sub.altitude
         self.follow_cov = msg_sub.position_covariance
 
-    def angle_copter2_listener(self, msg_sub):
-        self.follow_angle = msg_sub
+    def orientation_copter2_listener(self, msg_sub):
+        self.follow_orientation = msg_sub
+
+    def orientation_copter1_listener(self, msg_sub):
+        self.orientation = msg_sub.data
 
     def timer_callback(self):
         if self.send_vel and self.send_delay:
