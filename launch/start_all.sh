@@ -13,7 +13,7 @@ gnome-terminal \
  sleep 6
  gnome-terminal \
  --tab -e "ros2 launch p2-drone-formation-control-simulator mavros_launch.xml " /
- sleep 45
+ sleep 60
  gnome-terminal \
  --tab -e "ros2 launch p2-drone-formation-control-simulator gui.launch.py  " /
 

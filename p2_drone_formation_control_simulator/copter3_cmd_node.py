@@ -79,20 +79,14 @@ class CmdVel(Node):
         if self.formation:
             distance = np.linalg.norm(self.own_position - self.leader_position)
             richtungsvektor = self.leader_position - self.own_position
-            norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
+            #norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
             self.get_logger().info('Distanz Copter 3= %f ' % distance)
-            if distance > 1:
-                self.msg.twist.linear.x = float(norm_richt[0]) * 2
-                self.msg.twist.linear.y = float(norm_richt[1]) * 2
-                self.msg.twist.angular.z = float(norm_richt[2]) * 2
-                self.send_vel = True
-                self.send_delay = True
+            self.msg.twist.linear.x = float(richtungsvektor[0])
+            self.msg.twist.linear.y = float(richtungsvektor[1])
+            self.msg.twist.angular.z = float(richtungsvektor[2])
+            self.send_vel = True
+            self.send_delay = True
 
-            else:
-                self.msg.twist.linear.x = 0.0
-                self.msg.twist.linear.y = 0.0
-                self.msg.twist.angular.z = 0.0
-                self.send_vel = False
 
     def cmd_listener(self, msg_sub):
         #self.get_logger().info('cmd = %s' % msg_sub.data)
