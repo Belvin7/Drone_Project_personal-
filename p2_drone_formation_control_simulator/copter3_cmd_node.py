@@ -55,7 +55,7 @@ class CmdVel(Node):
                                                                  self.orientation_copter1_listener,
                                                                  rclpy.qos.qos_profile_sensor_data)
         self.orientation_copter3_subscriber = self.create_subscription(Float64,
-                                                                 'iris1/global_position/compass_hdg',
+                                                                 'iris3/global_position/compass_hdg',
                                                                  self.orientation_copter3_listener,
                                                                  rclpy.qos.qos_profile_sensor_data)
         self.pos_leader_coord_subscriber = self.create_subscription(PoseStamped,
