@@ -28,7 +28,10 @@ class CmdVel(Node):
         self.orientation = 0.
 
         self.leader_position = np.array((0, 0, 0))
-        self.own_position = np.array((2, 0, 0))
+        self.formation_orientation = np.array((0, 0, 0, 1))
+        self.own_position = np.array((4, 0, 0))
+        self.av = np.array((0, 0, 0))
+        self.time_ang = self.get_clock().now().nanoseconds * 1e-9
 
         # variables for kalman-filter
         self.follow_lat = 0.
@@ -71,10 +74,33 @@ class CmdVel(Node):
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
+    #based on https://mariogc.com/post/angular-velocity-quaternions/
+    def angular_velocities(self, q1, q2, dt):
+        return (2 / dt) * np.array([
+            q1[3] * q2[0] - q1[0] * q2[3] - q1[1] * q2[2] + q1[2] * q2[1],
+            q1[3] * q2[1] + q1[0] * q2[2] - q1[1] * q2[3] - q1[2] * q2[0],
+            q1[3] * q2[2] - q1[0] * q2[1] + q1[1] * q2[0] - q1[2] * q2[3]])
+
     def lead_listener(self, msg_sub):
-        self.leader_position[0] = msg_sub.pose.position.x + 5
-        self.leader_position[1] = msg_sub.pose.position.y - 5
+        self.leader_position[0] = msg_sub.pose.position.x + 5 * np.cos(float(self.follow_orientation))
+        self.leader_position[1] = msg_sub.pose.position.y - 5 * np.sin(float(self.follow_orientation))
         self.leader_position[2] = msg_sub.pose.position.z
+
+        new_q = np.array((0, 0, 0, 0))
+        new_q[0] = msg_sub.pose.orientation.x
+        new_q[1] = msg_sub.pose.orientation.y
+        new_q[2] = msg_sub.pose.orientation.z
+        new_q[3] = msg_sub.pose.orientation.w
+
+        dtime = self.get_clock().now().nanoseconds * 1e-9 - self.time_ang
+        self.av = self.angular_velocities(self.formation_orientation, new_q, dtime)
+
+        self.formation_orientation[0] = msg_sub.pose.orientation.x
+        self.formation_orientation[1] = msg_sub.pose.orientation.y
+        self.formation_orientation[2] = msg_sub.pose.orientation.z
+        self.formation_orientation[3] = msg_sub.pose.orientation.w
+
+        self.time_ang = self.get_clock().now().nanoseconds * 1e-9
 
     def own_listener(self, msg_sub):
         self.own_position[0] = msg_sub.pose.position.x + 4
@@ -88,7 +114,11 @@ class CmdVel(Node):
             self.get_logger().info('Distanz Copter 3= %f ' % distance)
             self.msg.twist.linear.x = float(richtungsvektor[0])
             self.msg.twist.linear.y = float(richtungsvektor[1])
-            self.msg.twist.angular.z = float(richtungsvektor[2])
+            self.msg.twist.linear.z = float(richtungsvektor[2])
+
+            self.msg.twist.angular.x = self.av[0]
+            self.msg.twist.angular.y = self.av[1]
+            self.msg.twist.angular.z = self.av[2]
             self.send_vel = True
             self.send_delay = True
 
@@ -151,7 +181,6 @@ class CmdVel(Node):
             self.cmd_vel_publisher.publish(self.msg)
             #self.get_logger().info('Publishing: "%s"' % self.msg)
             self.send_delay = False
-
 
 def main(args=None):
     rclpy.init(args=args)
