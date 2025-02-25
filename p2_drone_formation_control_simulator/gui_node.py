@@ -469,7 +469,7 @@ class P2(Node):
                                  )
         formation_button.grid(column=3, row=10, padx=10, pady=0)
 
-        ## Enter Target Position at toprightmost corner 
+        ## Enter Target Position coordinates in toprightmostcorner
 
         tk.Label(text="Enter Target Position Copter 1").grid(column=4, row=0, padx=5, pady=5)
 
