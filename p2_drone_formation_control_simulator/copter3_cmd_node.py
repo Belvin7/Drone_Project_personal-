@@ -37,13 +37,13 @@ class CmdVel(Node):
         # variables for kalman-filter
         self.state = np.zeros(6)
         self.delta_t = 0.25
-        #self.Q = np.eye(self.state.size)
-        self.Q = np.array([[np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0  , 0., 0., 0., 0.],
-                           [np.power(self.delta_t,2)/2.0    , 1.                            , 0., 0., 0., 0.],
-                           [0., 0., np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0, 0., 0.],
-                           [0., 0., np.power(self.delta_t,2)/2.0    , 1., 0., 0.],
-                           [0., 0., 0., 0., np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0],
-                           [0., 0., 0., 0., np.power(self.delta_t,2)/2.0    , 1.]])
+        # self.Q = np.eye(self.state.size)
+        self.Q = np.array([[np.power(self.delta_t, 3) / 3.0, np.power(self.delta_t, 2) / 2.0, 0., 0., 0., 0.],
+                           [np.power(self.delta_t, 2) / 2.0, 1., 0., 0., 0., 0.],
+                           [0., 0., np.power(self.delta_t, 3) / 3.0, np.power(self.delta_t, 2) / 2.0, 0., 0.],
+                           [0., 0., np.power(self.delta_t, 2) / 2.0, 1., 0., 0.],
+                           [0., 0., 0., 0., np.power(self.delta_t, 3) / 3.0, np.power(self.delta_t, 2) / 2.0],
+                           [0., 0., 0., 0., np.power(self.delta_t, 2) / 2.0, 1.]])
         self.Cov = np.eye(self.state.size)
         self.A = np.array([[1., 0., 0., self.delta_t, 0., 0.],
                            [0., 1., 0., 0., self.delta_t, 0.],
