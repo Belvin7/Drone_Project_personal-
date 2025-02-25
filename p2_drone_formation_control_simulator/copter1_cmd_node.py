@@ -37,7 +37,7 @@ class CmdVel(Node):
         self.follow_angle = 0.
 
         # publisher
-        #self.cmd_vel_publisher = self.create_publisher(TwistStamped, '/iris1/setpoint_attitude/cmd_vel', 10)
+        
         self.cmd_vel_publisher = self.create_publisher(TwistStamped, '/iris1/setpoint_velocity/cmd_vel', 10)
         
         # subscriber
