@@ -4,8 +4,9 @@ from rclpy.node import Node
 
 import numpy as np
 from std_msgs.msg import String, Float64
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import TwistStamped, Point
 from sensor_msgs.msg import NavSatFix
+from geometry_msgs.msg import PoseStamped
  
 class CmdVel(Node):
     def __init__(self):
@@ -14,6 +15,7 @@ class CmdVel(Node):
         # variables
         self.send_vel = False
         self.send_delay = False
+        self.target = False
         self.msg = TwistStamped()
         self.msg.header.stamp = self.get_clock().now().to_msg()
         self.msg.header.frame_id = 'base_link'
@@ -23,6 +25,9 @@ class CmdVel(Node):
         self.msg.twist.angular.x = 0.
         self.msg.twist.angular.y = 0.
         self.msg.twist.angular.z = 0.
+
+        self.own_position = np.array((0, 0, 0))
+        self.targetposition = np.array([0, 0, 0])
 
         # variables for kalman-filter
         self.follow_lat = 0.
@@ -48,6 +53,13 @@ class CmdVel(Node):
                                                                  'iris2/global_position/compass_hdg',
                                                                  self.angle_copter2_listener,
                                                                  rclpy.qos.qos_profile_sensor_data)
+        
+        self.pos_own = self.create_subscription(PoseStamped,
+                                               'iris1/local_position/pose',
+                                               self.move_to_position_function,
+                                               rclpy.qos.qos_profile_sensor_data)
+        
+        self.something = self.create_subscription(Point, 'p2/target_position', self.target_position_listener, rclpy.qos.qos_profile_sensor_data)
 
         # timer with callback
         timer_period = 0.1
@@ -61,23 +73,70 @@ class CmdVel(Node):
             self.msg.twist.angular.z = 0.0
             self.send_vel = True
             self.send_delay = True
+            self.target = False
         elif msg_sub.data == 'right':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = -1.0
             self.send_vel = True
             self.send_delay = True
+            self.target = False
         elif msg_sub.data == 'left':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = 1.0
             self.send_vel = True
             self.send_delay = True
+            self.target = False
         elif msg_sub.data == 'stop':
             self.msg.twist.linear.x  = 0.0
             self.msg.twist.linear.y  = 0.0
             self.msg.twist.angular.z = 0.0
-            self.send_vel = False 
+            self.send_vel = False
+            self.target = False
+        elif msg_sub.data == 'movetotarget':
+            self.target = True
+    
+    def target_position_listener(self, msg_sub):
+        self.targetposition = np.array([msg_sub.x, msg_sub.y, msg_sub.z])
+
+
+    def move_to_position_function(self, msg_sub):
+
+        self.own_position[0] = msg_sub.pose.position.x
+        self.own_position[1] = msg_sub.pose.position.y
+        self.own_position[2] = msg_sub.pose.position.z
+
+
+        if self.target == True : 
+            # Compute the distance to the target
+            distance = np.linalg.norm(self.own_position - self.targetposition)
+
+            self.get_logger().info('Position = ' + str(self.own_position))
+            self.get_logger().info('Target Position = ' + str(self.targetposition))
+
+            # Compute the direction vector
+            direction_vector = self.targetposition - self.own_position
+            norm_direction = direction_vector / np.linalg.norm(direction_vector)  # Normalize
+
+            self.get_logger().info('Distance to target = %f ' % distance)
+
+            # Move drone towards the target if distance > threshold
+            if distance > 0.5:  # Adjust threshold as needed
+                speed_factor = min(distance, 2.0)  # Limit speed based on distance
+                self.msg.twist.linear.x = float(norm_direction[0]) * speed_factor
+                self.msg.twist.linear.y = float(norm_direction[1]) * speed_factor
+                self.msg.twist.linear.z = float(norm_direction[2]) * speed_factor
+                self.send_vel = True
+                self.send_delay = True
+
+            else:
+                # Stop the drone if it's close enough to the target
+                self.msg.twist.linear.x = 0.0
+                self.msg.twist.linear.y = 0.0
+                self.msg.twist.linear.z = 0.0
+                self.send_vel = False
+
 
     def pos_copter2_listener(self, msg_sub):
         # insert for debug

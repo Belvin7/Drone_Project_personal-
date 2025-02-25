@@ -4,7 +4,7 @@ import tkinter as tk
 from rclpy.node import Node
 
 from std_msgs.msg import String
-from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import TwistStamped, Point
 from mavros_msgs.srv import SetMode
 from mavros_msgs.srv import CommandBool
 from mavros_msgs.srv import CommandTOL
@@ -20,6 +20,8 @@ class P2(Node):
         self.copter1_cmd_publisher = self.create_publisher(String, 'p2/copter1_cmd', 10)
         self.copter2_cmd_publisher = self.create_publisher(String, 'p2/copter2_cmd', 10)
         self.copter3_cmd_publisher = self.create_publisher(String, 'p2/copter3_cmd', 10)
+
+        self.target_position_publisher = self.create_publisher(Point, 'p2/target_position', 10)
 
         # clients for copter 1
         self.declare_parameter("copter1_mode_topic", "/iris1/set_mode")
@@ -94,6 +96,9 @@ class P2(Node):
 
         ## first drone
         # guided button
+
+        
+
         guided1_button = tk.Button(self.window,
           text='Guided-mode', 
           command=self.guided1_clicked,
@@ -464,6 +469,33 @@ class P2(Node):
                                  )
         formation_button.grid(column=3, row=10, padx=10, pady=0)
 
+        ## Enter Target Position at toprightmost corner 
+
+        tk.Label(text="Enter Target Position Copter 1").grid(column=4, row=0, padx=5, pady=5)
+
+
+        tk.Label(self.window, text="Target X:").grid(column=4, row=1, padx=5, pady=5)
+        tk.Label(self.window, text="Target Y:").grid(column=4, row=2, padx=5, pady=5)
+        tk.Label(self.window, text="Target Z:").grid(column=4, row=3, padx=5, pady=5)
+
+
+        self.target_x_entry = tk.Entry(self.window, width=10)
+        self.target_y_entry = tk.Entry(self.window, width=10)
+        self.target_z_entry = tk.Entry(self.window, width=10)
+
+        self.target_x_entry.grid(column=5, row=1, padx=5, pady=5)
+        self.target_y_entry.grid(column=5, row=2, padx=5, pady=5)
+        self.target_z_entry.grid(column=5, row=3, padx=5, pady=5)
+
+        movetotarget_button = tk.Button(self.window,
+          text='Move-to-Target', 
+          command=self.movetotarget_clicked,
+          padx=10,
+          pady=5,
+          width=15
+        )
+        movetotarget_button.grid(column=4, row=4, padx=10, pady=0)
+
         self.window.mainloop()
 
     def switch_mode(self, mode, drone):
@@ -531,6 +563,20 @@ class P2(Node):
             time.sleep(1)
 
         return takeoff_success
+     
+
+    def movetotarget_clicked(self):
+        msg = String()
+        msg.data = 'movetotarget'
+        self.copter1_cmd_publisher.publish(msg)
+
+        msg = Point()
+        msg.x = float(self.target_x_entry.get())
+        msg.y = float(self.target_y_entry.get())
+        msg.z = float(self.target_z_entry.get())
+        self.target_position_publisher.publish(msg)
+
+        rclpy.spin_once(self, timeout_sec=0)
 
     def guided1_clicked(self):
         self.switch_mode_with_timeout("GUIDED",rclpy.duration.Duration(seconds=1), 1)
