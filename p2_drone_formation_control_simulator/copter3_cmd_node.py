@@ -30,15 +30,30 @@ class CmdVel(Node):
         self.leader_position = np.array((0, 0, 0))
         self.own_position = np.array((2, 0, 0))
 
-        # variables for kalman-filter
-        self.follow_lat = 0.
-        self.follow_log = 0.
-        self.follow_alt = 0.
-        self.follow_cov = np.zeros(9)
-        self.follow_orientation = 0.
-
+       # variables for kalman-filter
+        self.state = np.zeros(6)
+        self.delta_t = 0.25
+        #self.Q = np.eye(self.state.size)
+        self.Q = np.array([[np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0  , 0., 0., 0., 0.],
+                           [np.power(self.delta_t,2)/2.0    , 1.                            , 0., 0., 0., 0.],
+                           [0., 0., np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0, 0., 0.],
+                           [0., 0., np.power(self.delta_t,2)/2.0    , 1., 0., 0.],
+                           [0., 0., 0., 0., np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0],
+                           [0., 0., 0., 0., np.power(self.delta_t,2)/2.0    , 1.]])
+        self.Cov = np.eye(self.state.size)
+        self.A = np.array([[1., 0., 0., self.delta_t, 0., 0.],
+                           [0., 1., 0., 0., self.delta_t, 0.],
+                           [0., 0., 1., 0., 0., self.delta_t],
+                           [0., 0., 0., 1., 0., 0.],
+                           [0., 0., 0., 0., 1., 0.],
+                           [0., 0., 0., 0., 0., 1.]])
+        self.H = np.array([[1., 0., 0., 0., 0., 0.],
+                           [0., 1., 0., 0., 0., 0.],
+                           [0., 0., 1., 0., 0., 0.]])
+        self.R = 0.01 * np.eye(3)
+        self.z = np.zeros(3)
+        
         # publisher
-        #self.cmd_vel_publisher = self.create_publisher(TwistStamped, '/iris3/setpoint_attitude/cmd_vel', 10)
         self.cmd_vel_publisher = self.create_publisher(TwistStamped, '/iris3/setpoint_velocity/cmd_vel', 10)
         
         # subscriber
@@ -46,10 +61,6 @@ class CmdVel(Node):
                                                        'p2/copter3_cmd', 
                                                        self.cmd_listener,
                                                        10)
-        self.pos_copter1_subscriber = self.create_subscription(NavSatFix,
-                                                               'iris1/global_position/global',
-                                                               self.pos_copter1_listener,
-                                                               rclpy.qos.qos_profile_sensor_data)
         self.orientation_copter1_subscriber = self.create_subscription(Float64,
                                                                  'iris1/global_position/compass_hdg',
                                                                  self.orientation_copter1_listener,
@@ -70,11 +81,17 @@ class CmdVel(Node):
         # timer with callback
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.timer2 = self.create_timer(1.0, self.kalman_timer_callback)
 
     def lead_listener(self, msg_sub):
         self.leader_position[0] = msg_sub.pose.position.x + 5
         self.leader_position[1] = msg_sub.pose.position.y - 5
         self.leader_position[2] = msg_sub.pose.position.z
+        self.z[0] = msg_sub.pose.position.x
+        self.z[1] = msg_sub.pose.position.y
+        self.z[2] = msg_sub.pose.position.z
+        self.kalman_predict()
+        self.kalman_update()
 
     def own_listener(self, msg_sub):
         self.own_position[0] = msg_sub.pose.position.x + 4
@@ -91,7 +108,6 @@ class CmdVel(Node):
             self.msg.twist.angular.z = float(richtungsvektor[2])
             self.send_vel = True
             self.send_delay = True
-
 
     def cmd_listener(self, msg_sub):
         #self.get_logger().info('cmd = %s' % msg_sub.data)
@@ -125,16 +141,6 @@ class CmdVel(Node):
         elif msg_sub.data == 'formation':
             self.formation = True
  
-    def pos_copter1_listener(self, msg_sub):
-        #if self.send_vel:
-        #    self.get_logger().info('copter3: copter1.latitude  = %f' % msg_sub.latitude)
-        #    self.get_logger().info('copter3: copter1.longitude = %f' % msg_sub.longitude)
-        #    self.get_logger().info('copter3: copter1.altitude  = %f' % msg_sub.altitude)
-        self.follow_lat = msg_sub.latitude
-        self.follow_log = msg_sub.longitude
-        self.follow_alt = msg_sub.altitude
-        self.follow_cov = msg_sub.position_covariance
-
     def orientation_copter1_listener(self, msg_sub):
         self.follow_orientation = msg_sub.data
 
@@ -151,6 +157,26 @@ class CmdVel(Node):
             self.cmd_vel_publisher.publish(self.msg)
             #self.get_logger().info('Publishing: "%s"' % self.msg)
             self.send_delay = False
+
+    def kalman_timer_callback(self):
+        self.get_logger().info('-copter3-------------------------------------')
+        self.get_logger().info('self.state[0] = %f ' % self.state[0])
+        self.get_logger().info('self.state[1] = %f ' % self.state[1])
+        self.get_logger().info('self.state[2] = %f ' % self.state[2])
+        self.get_logger().info('self.state[3] = %f ' % self.state[3])
+        self.get_logger().info('self.state[4] = %f ' % self.state[4])
+        self.get_logger().info('self.state[5] = %f ' % self.state[5])
+
+    def kalman_predict(self):
+        self.state = self.A @ self.state
+        self.Cov = self.A @ self.Cov @ self.A.transpose() + self.Q
+
+    def kalman_update(self):
+        S = self.H @ self.Cov @ self.H.transpose() + self.R
+        K = self.Cov @ self.H.transpose() @ np.linalg.inv(S)
+        self.state = self.state + K @ (self.z - self.H @ self.state)
+        #self.Cov = self.Cov - K @ self.H @ self.Cov
+        self.Cov = self.Cov - K @ S @ K.transpose()
 
 
 def main(args=None):
