@@ -1,3 +1,5 @@
+import math
+
 import rclpy
 import time 
 from rclpy.node import Node
@@ -26,6 +28,8 @@ class CmdVel(Node):
         self.msg.twist.angular.y = 0.
         self.msg.twist.angular.z = 0.
         self.orientation = 0.
+        self.wanted_distance = 3
+        self.degree_offset = 45
 
         self.leader_position = np.array((0, 0, 0))
         self.formation_orientation = np.array((0, 0, 0, 1))
@@ -90,7 +94,6 @@ class CmdVel(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.timer2 = self.create_timer(1.0, self.kalman_timer_callback)
 
-
     #based on https://mariogc.com/post/angular-velocity-quaternions/
     def angular_velocities(self, q1, q2, dt):
         return (2 / dt) * np.array([
@@ -99,8 +102,9 @@ class CmdVel(Node):
             q1[3] * q2[2] - q1[0] * q2[1] + q1[1] * q2[0] - q1[2] * q2[3]])
 
     def lead_listener(self, msg_sub):
-        self.leader_position[0] = msg_sub.pose.position.x - 5 * np.cos(float(self.follow_orientation))
-        self.leader_position[1] = msg_sub.pose.position.y - 5 * np.sin(float(self.follow_orientation))
+
+        self.leader_position[0] = msg_sub.pose.position.x
+        self.leader_position[1] = msg_sub.pose.position.y
         self.leader_position[2] = msg_sub.pose.position.z
         self.z[0] = msg_sub.pose.position.x
         self.z[1] = msg_sub.pose.position.y
@@ -131,12 +135,29 @@ class CmdVel(Node):
 
         if self.formation:
             distance = np.linalg.norm(self.own_position - self.leader_position)
-            richtungsvektor = self.leader_position - self.own_position
-            #norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
+
+            theta = np.radians(self.follow_orientation)
+            offset = np.array([self.wanted_distance * np.sin(np.radians(self.degree_offset)),
+                               self.wanted_distance * np.cos(np.radians(self.degree_offset)),
+                               0])
+            rotation_matrix = np.array([
+                [-np.cos(theta), np.sin(theta), 0],
+                [-np.sin(theta), -np.cos(theta), 0],
+                [0, 0, 1]
+            ])
+
+            wanted_pos = np.array([0, 0, 0])
+            wanted_pos = self.leader_position + rotation_matrix.dot(offset)
+
+            richtungsvektor = wanted_pos - self.own_position
+            norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
+
             self.get_logger().info('Distanz Copter 2= %f ' % distance)
-            self.msg.twist.linear.x = float(richtungsvektor[0])
-            self.msg.twist.linear.y = float(richtungsvektor[1])
-            self.msg.twist.linear.z = float(richtungsvektor[2])
+            self.get_logger().warn('LEADER ORIENTATION = %f' % self.follow_orientation)
+            #self.get_logger().info('Copter 2 position: %f %f %f' % wanted_pos[0] % wanted_pos[1] % wanted_pos[2])
+            self.msg.twist.linear.x = float(richtungsvektor[0]) * 0.5
+            self.msg.twist.linear.y = float(richtungsvektor[1]) * 0.5
+            self.msg.twist.linear.z = float(richtungsvektor[2]) * 0.5
 
             self.msg.twist.angular.x = self.av[0]
             self.msg.twist.angular.y = self.av[1]
