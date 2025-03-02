@@ -10,6 +10,10 @@ from geometry_msgs.msg import TwistStamped
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import NavSatFix
  
+# TODO: 
+#       - implement dropout for kalman update so that not all are used
+
+
 class CmdVel(Node):
     def __init__(self):
         super().__init__('cmd_vel')
@@ -39,27 +43,33 @@ class CmdVel(Node):
         self.follow_orientation = 0.
 
        # variables for kalman-filter
-        self.state = np.zeros(6)
+        #self.state = np.zeros(6)
+        self.state = np.zeros(8)
         self.delta_t = 0.25
         #self.Q = np.eye(self.state.size)
-        self.Q = np.array([[np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0  , 0., 0., 0., 0.],
-                           [np.power(self.delta_t,2)/2.0    , 1.                            , 0., 0., 0., 0.],
-                           [0., 0., np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0, 0., 0.],
-                           [0., 0., np.power(self.delta_t,2)/2.0    , 1., 0., 0.],
-                           [0., 0., 0., 0., np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0],
-                           [0., 0., 0., 0., np.power(self.delta_t,2)/2.0    , 1.]])
+        self.Q = np.array([[np.power(self.delta_t,3)/3.0    ,np.power(self.delta_t,2)/2.0  , 0., 0., 0., 0., 0., 0.],
+                           [np.power(self.delta_t,2)/2.0    , 1., 0., 0., 0., 0., 0., 0.],
+                           [0., 0., np.power(self.delta_t,3)/3.0    ,np.power(self.delta_t,2)/2.0, 0., 0., 0., 0.],
+                           [0., 0., np.power(self.delta_t,2)/2.0    , 1., 0., 0., 0., 0.],
+                           [0., 0., 0., 0., np.power(self.delta_t,3)/3.0    , np.power(self.delta_t,2)/2.0, 0., 0.],
+                           [0., 0., 0., 0., np.power(self.delta_t,2)/2.0 ,1., 0., 0.],
+                           [0., 0., 0., 0., 0., 0., np.power(self.delta_t,3)/3.0 , np.power(self.delta_t,2)/2.0],
+                           [0., 0., 0., 0., 0., 0., np.power(self.delta_t,2)/2.0 ,1.]])
         self.Cov = np.eye(self.state.size)
-        self.A = np.array([[1., 0., 0., self.delta_t, 0., 0.],
-                           [0., 1., 0., 0., self.delta_t, 0.],
-                           [0., 0., 1., 0., 0., self.delta_t],
-                           [0., 0., 0., 1., 0., 0.],
-                           [0., 0., 0., 0., 1., 0.],
-                           [0., 0., 0., 0., 0., 1.]])
-        self.H = np.array([[1., 0., 0., 0., 0., 0.],
-                           [0., 1., 0., 0., 0., 0.],
-                           [0., 0., 1., 0., 0., 0.]])
-        self.R = 0.01 * np.eye(3)
-        self.z = np.zeros(3)
+        self.A = np.array([[1., 0., 0., 0., self.delta_t, 0., 0., 0.],
+                           [0., 1., 0., 0., 0., self.delta_t, 0., 0.],
+                           [0., 0., 1., 0., 0., 0., self.delta_t, 0.],
+                           [0., 0., 0., 1., 0., 0., 0., self.delta_t],
+                           [0., 0., 0., 0., 1., 0., 0., 0.],
+                           [0., 0., 0., 0., 0., 1., 0., 0.],
+                           [0., 0., 0., 0., 0., 0., 1., 0.],
+                           [0., 0., 0., 0., 0., 0., 0., 1.]])
+        self.H = np.array([[1., 0., 0., 0., 0., 0., 0., 0.],
+                           [0., 1., 0., 0., 0., 0., 0., 0.],
+                           [0., 0., 1., 0., 0., 0., 0., 0.],
+                           [0., 0., 0., 1., 0., 0., 0., 0.]])
+        self.R = 0.01 * np.eye(4)
+        self.z = np.zeros(4)
 
         # publisher
         self.cmd_vel_publisher = self.create_publisher(TwistStamped, 
@@ -71,10 +81,10 @@ class CmdVel(Node):
                                                        'p2/copter2_cmd', 
                                                        self.cmd_listener,
                                                        10)
-        self.orientation_copter1_subscriber = self.create_subscription(Float64,
-                                                                 'iris1/global_position/compass_hdg',
-                                                                 self.orientation_copter1_listener,
-                                                                 rclpy.qos.qos_profile_sensor_data)
+#        self.orientation_copter1_subscriber = self.create_subscription(Float64,
+#                                                                 'iris1/global_position/compass_hdg',
+#                                                                 self.orientation_copter1_listener,
+#                                                                 rclpy.qos.qos_profile_sensor_data)
         self.orientation_copter2_subscriber = self.create_subscription(Float64,
                                                                  'iris2/global_position/compass_hdg',
                                                                  self.orientation_copter2_listener,
@@ -109,8 +119,27 @@ class CmdVel(Node):
         self.z[0] = msg_sub.pose.position.x
         self.z[1] = msg_sub.pose.position.y
         self.z[2] = msg_sub.pose.position.z
+
+        # calc yawn angle from quaternion
+        x2 = msg_sub.pose.orientation.x * msg_sub.pose.orientation.x
+        z2 = msg_sub.pose.orientation.z * msg_sub.pose.orientation.z
+
+        adbc = msg_sub.pose.orientation.w * msg_sub.pose.orientation.z - msg_sub.pose.orientation.x * msg_sub.pose.orientation.y
+        angle = np.arctan2(2. * adbc, 1. - 2. * (z2 + x2))
+
+        if angle >= 0.0 and angle <= np.pi/2.0:
+            angle = np.pi/2.0 - angle
+        elif angle > np.pi/2.0 and angle < np.pi:
+            angle = 2.0*np.pi - angle + np.pi/2.0 
+        else:
+            angle = np.abs(angle) + np.pi/2.0
+        self.z[3] = angle 
+        self.follow_orientation = angle
+#        self.get_logger().info('angle = %f' % np.rad2deg(angle) )
         self.kalman_predict()
-        self.kalman_update()
+        p = np.random.rand()
+        if p >= 0.2:
+            self.kalman_update()
 
         new_q=np.array((0,0,0,0))
         new_q[0] = msg_sub.pose.orientation.x
@@ -136,7 +165,8 @@ class CmdVel(Node):
         if self.formation:
             distance = np.linalg.norm(self.own_position - self.leader_position)
 
-            theta = np.radians(self.follow_orientation)
+            #theta = np.radians(self.follow_orientation)
+            theta = self.state[3]
             offset = np.array([self.wanted_distance * np.sin(np.radians(self.degree_offset)),
                                self.wanted_distance * np.cos(np.radians(self.degree_offset)),
                                0])
@@ -152,8 +182,8 @@ class CmdVel(Node):
             richtungsvektor = wanted_pos - self.own_position
             norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
 
-            self.get_logger().info('Distanz Copter 2= %f ' % distance)
-            self.get_logger().warn('LEADER ORIENTATION = %f' % self.follow_orientation)
+            #self.get_logger().info('Distanz Copter 2= %f ' % distance)
+            #self.get_logger().warn('LEADER ORIENTATION = %f' % self.follow_orientation)
             #self.get_logger().info('Copter 2 position: %f %f %f' % wanted_pos[0] % wanted_pos[1] % wanted_pos[2])
             self.msg.twist.linear.x = float(richtungsvektor[0]) * 0.5
             self.msg.twist.linear.y = float(richtungsvektor[1]) * 0.5
@@ -222,6 +252,8 @@ class CmdVel(Node):
         self.get_logger().info('self.state[3] = %f ' % self.state[3])
         self.get_logger().info('self.state[4] = %f ' % self.state[4])
         self.get_logger().info('self.state[5] = %f ' % self.state[5])
+        self.get_logger().info('self.state[6] = %f ' % self.state[6])
+        self.get_logger().info('self.state[7] = %f ' % self.state[7])
 
     def kalman_predict(self):
         self.state = self.A @ self.state
