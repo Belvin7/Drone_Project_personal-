@@ -27,14 +27,13 @@ class CmdVel(Node):
         self.msg.twist.angular.z = 0.
         self.orientation = 0.
         self.wanted_distance = 3
-        self.degree_offset = 45
+        self.degree_offset = -45
 
         self.leader_position = np.array((0, 0, 0))
         self.formation_orientation = np.array((0, 0, 0, 1))
         self.own_position = np.array((4, 0, 0))
         self.av = np.array((0, 0, 0))
         self.time_ang = self.get_clock().now().nanoseconds * 1e-9
-        self.follow_orientation = 0.
 
         # variables for kalman-filter
         #self.state = np.zeros(6)
@@ -73,10 +72,6 @@ class CmdVel(Node):
                                                        'p2/copter3_cmd', 
                                                        self.cmd_listener,
                                                        10)
-#        self.orientation_copter1_subscriber = self.create_subscription(Float64,
-#                                                                 'iris1/global_position/compass_hdg',
-#                                                                 self.orientation_copter1_listener,
-#                                                                 rclpy.qos.qos_profile_sensor_data)
         self.orientation_copter3_subscriber = self.create_subscription(Float64,
                                                                  'iris3/global_position/compass_hdg',
                                                                  self.orientation_copter3_listener,
@@ -124,8 +119,7 @@ class CmdVel(Node):
             angle = 2.0*np.pi - angle + np.pi/2.0 
         else:
             angle = np.abs(angle) + np.pi/2.0
-        self.z[3] = angle 
-        self.follow_orientation = angle
+        self.z[3] = angle
 #        self.get_logger().info('angle = %f' % np.rad2deg(angle) )
         self.kalman_predict()
         p = np.random.rand()
@@ -154,16 +148,14 @@ class CmdVel(Node):
         self.own_position[2] = msg_sub.pose.position.z
 
         if self.formation:
-            distance = np.linalg.norm(self.own_position - self.leader_position)
 
-            #theta = np.radians(self.follow_orientation)
-            theta = self.state[3]
-            offset = np.array([self.wanted_distance * np.sin(-np.radians(self.degree_offset)),
-                               self.wanted_distance * np.cos(-np.radians(self.degree_offset)),
+            theta = np.radians(360) - self.state[3]
+            offset = np.array([self.wanted_distance * np.cos(np.radians(self.degree_offset)),
+                               self.wanted_distance * np.sin(np.radians(self.degree_offset)),
                                0])
             rotation_matrix = np.array([
-                [-np.cos(theta), np.sin(theta), 0],
-                [-np.sin(theta), -np.cos(theta), 0],
+                [np.cos(theta), -np.sin(theta), 0],
+                [np.sin(theta), np.cos(theta), 0],
                 [0, 0, 1]
             ])
 
@@ -172,8 +164,6 @@ class CmdVel(Node):
             richtungsvektor = wanted_pos - self.own_position
             norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
 
-            self.get_logger().info('Distanz Copter 3= %f ' % distance)
-            #self.get_logger().info('Copter 3 position: %f %f %f' % wanted_pos[0] % wanted_pos[1] % wanted_pos[2])
             self.msg.twist.linear.x = float(richtungsvektor[0]) * 0.5
             self.msg.twist.linear.y = float(richtungsvektor[1]) * 0.5
             self.msg.twist.linear.z = float(richtungsvektor[2]) * 0.5
@@ -216,9 +206,6 @@ class CmdVel(Node):
         elif msg_sub.data == 'formation':
             self.formation = True
 
-    def orientation_copter1_listener(self, msg_sub):
-        self.follow_orientation = msg_sub.data
-
     def orientation_copter3_listener(self, msg_sub):
         self.orientation = msg_sub.data
 
@@ -234,7 +221,7 @@ class CmdVel(Node):
             self.send_delay = False
 
     def kalman_timer_callback(self):
-        self.get_logger().info('-copter2-------------------------------------')
+        self.get_logger().info('-copter3-------------------------------------')
         self.get_logger().info('self.state[0] = %f ' % self.state[0])
         self.get_logger().info('self.state[1] = %f ' % self.state[1])
         self.get_logger().info('self.state[2] = %f ' % self.state[2])
