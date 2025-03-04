@@ -10,10 +10,6 @@ from geometry_msgs.msg import TwistStamped
 from geometry_msgs.msg import PoseStamped
 from sensor_msgs.msg import NavSatFix
  
-# TODO: 
-#       - implement dropout for kalman update so that not all are used
-
-
 class CmdVel(Node):
     def __init__(self):
         super().__init__('cmd_vel')
@@ -39,14 +35,10 @@ class CmdVel(Node):
         self.formation_orientation = np.array((0, 0, 0, 1))
         self.own_position = np.array((2, 0, 0))
         self.av = np.array((0, 0, 0))
-        self.time_ang = self.get_clock().now().nanoseconds * 1e-9
-        self.follow_orientation = 0.
 
        # variables for kalman-filter
-        #self.state = np.zeros(6)
         self.state = np.zeros(8)
         self.delta_t = 0.25
-        #self.Q = np.eye(self.state.size)
         self.Q = np.array([[np.power(self.delta_t,3)/3.0    ,np.power(self.delta_t,2)/2.0  , 0., 0., 0., 0., 0., 0.],
                            [np.power(self.delta_t,2)/2.0    , 1., 0., 0., 0., 0., 0., 0.],
                            [0., 0., np.power(self.delta_t,3)/3.0    ,np.power(self.delta_t,2)/2.0, 0., 0., 0., 0.],
@@ -98,7 +90,6 @@ class CmdVel(Node):
         # timer with callback
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.timer2 = self.create_timer(1.0, self.kalman_timer_callback)
 
     #based on https://mariogc.com/post/angular-velocity-quaternions/
     def angular_velocities(self, q1, q2, dt):
@@ -130,27 +121,10 @@ class CmdVel(Node):
         else:
             angle = np.abs(angle) + np.pi/2.0
         self.z[3] = angle
-#        self.get_logger().info('angle = %f' % np.rad2deg(angle) )
         self.kalman_predict()
         p = np.random.rand()
         if p >= 0.2:
             self.kalman_update()
-
-        new_q=np.array((0,0,0,0))
-        new_q[0] = msg_sub.pose.orientation.x
-        new_q[1] = msg_sub.pose.orientation.y
-        new_q[2] = msg_sub.pose.orientation.z
-        new_q[3] = msg_sub.pose.orientation.w
-
-        dtime = self.get_clock().now().nanoseconds * 1e-9 - self.time_ang
-        self.av = self.angular_velocities(self.formation_orientation,new_q, dtime)
-
-        self.formation_orientation[0] = msg_sub.pose.orientation.x
-        self.formation_orientation[1] = msg_sub.pose.orientation.y
-        self.formation_orientation[2] = msg_sub.pose.orientation.z
-        self.formation_orientation[3] = msg_sub.pose.orientation.w
-        #self.get_logger().info('y pos = %f ' % msg_sub.pose.position.y)
-        self.time_ang = self.get_clock().now().nanoseconds * 1e-9
 
     def own_listener(self, msg_sub):
         self.own_position[0] = msg_sub.pose.position.x + 2
@@ -169,7 +143,7 @@ class CmdVel(Node):
                 [0, 0, 1]
             ])
 
-            wanted_pos = self.leader_position + rotation_matrix.dot(offset)
+            wanted_pos = self.state[0:3] + rotation_matrix.dot(offset)
 
             richtungsvektor = wanted_pos - self.own_position
             norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
@@ -178,9 +152,10 @@ class CmdVel(Node):
             self.msg.twist.linear.y = float(richtungsvektor[1]) * 0.5
             self.msg.twist.linear.z = float(richtungsvektor[2]) * 0.5
 
-            self.msg.twist.angular.x = self.av[0]
-            self.msg.twist.angular.y = self.av[1]
-            self.msg.twist.angular.z = self.av[2]
+            self.msg.twist.angular.x = 0.0
+            self.msg.twist.angular.y = 0.0
+            self.msg.twist.angular.z = self.state[7]
+
             self.send_vel = True
             self.send_delay = True
 
@@ -229,17 +204,6 @@ class CmdVel(Node):
             self.cmd_vel_publisher.publish(self.msg)
             #self.get_logger().info('Publishing: "%s"' % self.msg)
             self.send_delay = False
-
-    def kalman_timer_callback(self):
-        self.get_logger().info('-copter2-------------------------------------')
-        self.get_logger().info('self.state[0] = %f ' % self.state[0])
-        self.get_logger().info('self.state[1] = %f ' % self.state[1])
-        self.get_logger().info('self.state[2] = %f ' % self.state[2])
-        self.get_logger().info('self.state[3] = %f ' % self.state[3])
-        self.get_logger().info('self.state[4] = %f ' % self.state[4])
-        self.get_logger().info('self.state[5] = %f ' % self.state[5])
-        self.get_logger().info('self.state[6] = %f ' % self.state[6])
-        self.get_logger().info('self.state[7] = %f ' % self.state[7])
 
     def kalman_predict(self):
         self.state = self.A @ self.state
