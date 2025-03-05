@@ -1,0 +1,11 @@
+copter2_cmd_node:
+  ros__parameters:
+    wanted_distance: 4.
+    v-formation: -135.
+    line-formation: -180.
+
+copter3_cmd_node:
+  ros__parameters:
+    wanted_distance: 4.
+    v-formation: -45.
+    line-formation: 0.

@@ -10,12 +10,18 @@ from sensor_msgs.msg import NavSatFix
  
 class CmdVel(Node):
     def __init__(self):
-        super().__init__('cmd_vel')
+        super().__init__('copter3_cmd_node')
+        #ROS parameters
+        self.declare_parameter('wanted_distance', 0.)
+        self.declare_parameter('v-formation', 0.)
+        self.declare_parameter('line-formation', 0.)
 
         # variables
         self.send_vel = False
         self.send_delay = False
         self.formation = False
+        self.v_formation = False
+        self.line_formation = False
         self.msg = TwistStamped()
         self.msg.header.stamp = self.get_clock().now().to_msg()
         self.msg.header.frame_id = 'base_link'
@@ -26,12 +32,9 @@ class CmdVel(Node):
         self.msg.twist.angular.y = 0.
         self.msg.twist.angular.z = 0.
         self.orientation = 0.
-        self.wanted_distance = 3
-        self.degree_offset = -45
 
         self.leader_position = np.array((0, 0, 0))
         self.own_position = np.array((4, 0, 0))
-        self.av = np.array((0, 0, 0))
 
         # variables for kalman-filter
         self.state = np.zeros(8)
@@ -85,13 +88,6 @@ class CmdVel(Node):
         timer_period = 0.1
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-    #based on https://mariogc.com/post/angular-velocity-quaternions/
-    def angular_velocities(self, q1, q2, dt):
-        return (2 / dt) * np.array([
-            q1[3] * q2[0] - q1[0] * q2[3] - q1[1] * q2[2] + q1[2] * q2[1],
-            q1[3] * q2[1] + q1[0] * q2[2] - q1[1] * q2[3] - q1[2] * q2[0],
-            q1[3] * q2[2] - q1[0] * q2[1] + q1[1] * q2[0] - q1[2] * q2[3]])
-
     def lead_listener(self, msg_sub):
 
         self.leader_position[0] = msg_sub.pose.position.x
@@ -126,10 +122,15 @@ class CmdVel(Node):
         self.own_position[2] = msg_sub.pose.position.z
 
         if self.formation:
-
+            if self.v_formation:
+                param_dis = self.get_parameter('wanted_distance').get_parameter_value().double_value
+                param_degree = self.get_parameter('v-formation').get_parameter_value().double_value
+            elif self.line_formation:
+                param_dis = self.get_parameter('wanted_distance').get_parameter_value().double_value
+                param_degree = self.get_parameter('line-formation').get_parameter_value().double_value
             theta = np.radians(360) - self.state[3]
-            offset = np.array([self.wanted_distance * np.cos(np.radians(self.degree_offset)),
-                               self.wanted_distance * np.sin(np.radians(self.degree_offset)),
+            offset = np.array([param_dis * np.cos(np.radians(param_degree)),
+                               param_dis * np.sin(np.radians(param_degree)),
                                0])
             rotation_matrix = np.array([
                 [np.cos(theta), -np.sin(theta), 0],
@@ -140,7 +141,7 @@ class CmdVel(Node):
             wanted_pos = self.state[0:3] + rotation_matrix.dot(offset)
 
             richtungsvektor = wanted_pos - self.own_position
-            norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
+            #norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
 
             self.msg.twist.linear.x = float(richtungsvektor[0]) * 0.5
             self.msg.twist.linear.y = float(richtungsvektor[1]) * 0.5
@@ -182,8 +183,14 @@ class CmdVel(Node):
             self.msg.twist.angular.z = 0.0
             self.send_vel = False
             self.formation = False
-        elif msg_sub.data == 'formation':
+        elif msg_sub.data == 'v-formation':
             self.formation = True
+            self.v_formation = True
+            self.line_formation = False
+        elif msg_sub.data == 'line-formation':
+            self.formation = True
+            self.v_formation = False
+            self.line_formation = True
 
     def orientation_copter3_listener(self, msg_sub):
         self.orientation = msg_sub.data

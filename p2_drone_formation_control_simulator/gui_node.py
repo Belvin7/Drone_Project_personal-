@@ -460,14 +460,23 @@ class P2(Node):
                                  )
         land4_button.grid(column=3, row=9, padx=10, pady=0)
 
-        formation_button = tk.Button(self.window,
-                                 text='Formation',
-                                 command=self.formation_clicked,
+        v_formation_button = tk.Button(self.window,
+                                 text='V-Formation',
+                                 command=self.v_formation_clicked,
                                  padx=10,
                                  pady=5,
                                  width=15
                                  )
-        formation_button.grid(column=3, row=10, padx=10, pady=0)
+        v_formation_button.grid(column=3, row=10, padx=10, pady=0)
+
+        line_formation_button = tk.Button(self.window,
+                                     text='Line-Formation',
+                                     command=self.line_formation_clicked,
+                                     padx=10,
+                                     pady=5,
+                                     width=15
+                                     )
+        line_formation_button.grid(column=3, row=11, padx=10, pady=0)
 
         ## Enter Target Position coordinates in toprightmostcorner
 
@@ -752,9 +761,16 @@ class P2(Node):
         self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 2)
         self.switch_mode_with_timeout("LAND", rclpy.duration.Duration(seconds=1), 3)
 
-    def formation_clicked(self):
+    def v_formation_clicked(self):
         msg = String()
-        msg.data = 'formation'
+        msg.data = 'v-formation'
+        self.copter2_cmd_publisher.publish(msg)
+        self.copter3_cmd_publisher.publish(msg)
+        rclpy.spin_once(self, timeout_sec=0)
+
+    def line_formation_clicked(self):
+        msg = String()
+        msg.data = 'line-formation'
         self.copter2_cmd_publisher.publish(msg)
         self.copter3_cmd_publisher.publish(msg)
         rclpy.spin_once(self, timeout_sec=0)
