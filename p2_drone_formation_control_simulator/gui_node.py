@@ -2,12 +2,14 @@ import rclpy
 import time
 import tkinter as tk
 from rclpy.node import Node
+import numpy as np
 
 from std_msgs.msg import String
 from geometry_msgs.msg import TwistStamped, Point
 from mavros_msgs.srv import SetMode
 from mavros_msgs.srv import CommandBool
 from mavros_msgs.srv import CommandTOL
+from geometry_msgs.msg import PoseStamped
 
 #COPTER_MODE_GUIDED = 4 
 #TAKEOFF_ALT = 20.0 
@@ -16,12 +18,33 @@ class P2(Node):
     def __init__(self):
         super().__init__('p2')
 
+        self.own_position1 = np.zeros(3)
+        self.own_position2 = np.zeros(3)
+        self.own_position3 = np.zeros(3)
+
         # publisher should be used to set the velocities
         self.copter1_cmd_publisher = self.create_publisher(String, 'p2/copter1_cmd', 10)
         self.copter2_cmd_publisher = self.create_publisher(String, 'p2/copter2_cmd', 10)
         self.copter3_cmd_publisher = self.create_publisher(String, 'p2/copter3_cmd', 10)
 
         self.target_position_publisher = self.create_publisher(Point, 'p2/target_position', 10)
+
+        # Subscriber local position copter 1 
+        self.pos_own1 = self.create_subscription(PoseStamped,
+                                               'iris1/local_position/pose',
+                                               lambda msg: self.update_position(self.own_position1, msg),
+                                               rclpy.qos.qos_profile_sensor_data)
+        # Subscriber local position copter 2 
+        self.pos_own2 = self.create_subscription(PoseStamped,
+                                               'iris2/local_position/pose',
+                                               lambda msg: self.update_position(self.own_position2, msg),
+                                               rclpy.qos.qos_profile_sensor_data)
+        
+        # Subscriber local position copter 3 
+        self.pos_own3 = self.create_subscription(PoseStamped,
+                                               'iris3/local_position/pose',
+                                               lambda msg: self.update_position(self.own_position3, msg),
+                                               rclpy.qos.qos_profile_sensor_data)
 
         # clients for copter 1
         self.declare_parameter("copter1_mode_topic", "/iris1/set_mode")
@@ -80,6 +103,32 @@ class P2(Node):
         while not self.copter3_client_takeoff.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('copter3 takeoff service not available, waiting again...')
 
+        self.current_position_entry1 = None
+        self.current_position_entry2 = None
+        self.current_position_entry3 = None
+
+
+    def update_position(self, position, msg: PoseStamped):
+        position[0] = msg.pose.position.x
+        position[1] = msg.pose.position.y
+        position[2] = msg.pose.position.z
+
+    def update_gui(self):
+        entries = [self.current_position_entry1, self.current_position_entry2, self.current_position_entry3]
+        positions = [self.own_position1, self.own_position2, self.own_position3]
+
+        for entry, position in zip(entries, positions):
+            if not entry:
+                continue
+            pos_text = f"X: {position[0]:.2f}, Y: {position[1]:.2f}, Z: {position[2]:.2f}"
+
+            #  Enable Entry, update text, then set to readonly again
+            entry.configure(state='normal')
+            entry.delete(0, tk.END)
+            entry.insert(0, pos_text)
+            entry.configure(state='readonly')
+        
+        self.window.after(100, self.update_gui)
 
     def gui(self):
         self.window = tk.Tk()
@@ -94,10 +143,14 @@ class P2(Node):
         l3.grid(column=2, row=0, pady=0)
         l4.grid(column=3, row=0, pady=0)
 
-        ## first drone
+            ## first drone
         # guided button
 
-        
+
+        #currentpostiond1 = tk.Entry(self.window)
+        #currentpostiond1.grid(column=0, row=10, padx=10, pady=0)
+        #currentpostiond1.insert(0, self.get_logger().info('Position = ' + str(self.own_position)))  # Set initial text
+        #currentpostiond1.configure(state='readonly')  # Make it read-only
 
         guided1_button = tk.Button(self.window,
           text='Guided-mode', 
@@ -187,8 +240,12 @@ class P2(Node):
           width=15
         )
         land1_button.grid(column=0, row=9, padx=10, pady=0)
+
+        self.current_position_entry1 = tk.Entry(self.window, width=30)
+        self.current_position_entry1.grid(column=0, row=10, padx=10, pady=0)
+        self.current_position_entry1.configure(state='readonly')
         
-        ## second drone
+            ## Second drone
         # guided button
         guided2_button = tk.Button(self.window,
           text='Guided-mode', 
@@ -278,6 +335,11 @@ class P2(Node):
           width=15
         )
         land2_button.grid(column=1, row=9, padx=10, pady=0)
+
+        self.current_position_entry2 = tk.Entry(self.window, width=30)
+        self.current_position_entry2.grid(column=1, row=10, padx=10, pady=0)
+        self.current_position_entry2.configure(state='readonly')
+
 
         ## third drone
         # guided button
@@ -369,6 +431,10 @@ class P2(Node):
           width=15
         )
         land3_button.grid(column=2, row=9, padx=10, pady=0)
+
+        self.current_position_entry3 = tk.Entry(self.window, width=30)
+        self.current_position_entry3.grid(column=2, row=10, padx=10, pady=0)
+        self.current_position_entry3.configure(state='readonly')
 
         # guided button
         guided4_button = tk.Button(self.window,
@@ -505,7 +571,12 @@ class P2(Node):
         )
         movetotarget_button.grid(column=4, row=4, padx=10, pady=0)
 
-        self.window.mainloop()
+        self.update_gui()
+
+        while rclpy.ok():
+            rclpy.spin_once(self, timeout_sec=0.1)
+            self.window.update_idletasks()
+            self.window.update()
 
     def switch_mode(self, mode, drone):
         req = SetMode.Request()

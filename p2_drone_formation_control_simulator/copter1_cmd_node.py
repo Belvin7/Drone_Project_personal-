@@ -1,5 +1,6 @@
 import rclpy
 import time 
+import math
 from rclpy.node import Node
 
 import numpy as np
@@ -8,6 +9,7 @@ from geometry_msgs.msg import TwistStamped, Point
 from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import PoseStamped
  
+
 class CmdVel(Node):
     def __init__(self):
         super().__init__('cmd_vel')
@@ -87,16 +89,6 @@ class CmdVel(Node):
             self.target = False
         elif msg_sub.data == 'left':
             self.msg.twist.linear.x  = 0.0
-            self.msg.twist.linear.y  = 0.0
-            self.msg.twist.angular.z = 1.0
-            self.send_vel = True
-            self.send_delay = True
-            self.target = False
-        elif msg_sub.data == 'stop':
-            self.msg.twist.linear.x  = 0.0
-            self.msg.twist.linear.y  = 0.0
-            self.msg.twist.angular.z = 0.0
-            self.send_vel = False
             self.target = False
         elif msg_sub.data == 'movetotarget':
             self.target = True
@@ -104,43 +96,72 @@ class CmdVel(Node):
     def target_position_listener(self, msg_sub):
         self.targetposition = np.array([msg_sub.x, msg_sub.y, msg_sub.z])
 
-
     def move_to_position_function(self, msg_sub):
-
         self.own_position[0] = msg_sub.pose.position.x
         self.own_position[1] = msg_sub.pose.position.y
         self.own_position[2] = msg_sub.pose.position.z
 
+        # Update current orientation (quaternion)
+        qx = msg_sub.pose.orientation.x
+        qy = msg_sub.pose.orientation.y
+        qz = msg_sub.pose.orientation.z
+        qw = msg_sub.pose.orientation.w
 
-        if self.target == True : 
+        if self.target:
+            # Compute yaw from quaternion
+            current_yaw = math.atan2(2.0 * (qw * qz + qx * qy), 1.0 - 2.0 * (qy * qy + qz * qz))
+
+            # Compute desired yaw angle
+            desired_yaw = math.atan2(self.targetposition[1] - self.own_position[1],
+                                    self.targetposition[0] - self.own_position[0])
+
+            # Compute yaw error
+            yaw_error = desired_yaw - current_yaw
+            yaw_error = (yaw_error + math.pi) % (2 * math.pi) - math.pi  # Normalize to [-π, π] , so it takes shortest turn 
+
             # Compute the distance to the target
             distance = np.linalg.norm(self.own_position - self.targetposition)
 
+            self.get_logger().info(f'Yaw Error: {math.degrees(yaw_error)} degrees')
             self.get_logger().info('Position = ' + str(self.own_position))
             self.get_logger().info('Target Position = ' + str(self.targetposition))
-
-            # Compute the direction vector
-            direction_vector = self.targetposition - self.own_position
-            norm_direction = direction_vector / np.linalg.norm(direction_vector)  # Normalize
-
             self.get_logger().info('Distance to target = %f ' % distance)
 
-            # Move drone towards the target if distance > threshold
-            if distance > 0.5:  # Adjust threshold as needed
+            # Initialize velocity flags
+            turning = False
+            moving = False
+
+            # Step 1: Turn only if far away
+            if distance > 0 and abs(yaw_error) > 0.1:  # Only turn if far from target
+                speed_factor = min(abs(yaw_error), 1.0)  # Limit turning speed
+                self.msg.twist.angular.z = math.copysign(speed_factor, yaw_error)
+                turning = True
+            else:
+                self.msg.twist.angular.z = 0.0  # Stop turning when close enough
+
+            # Step 2:Move only when aligned or close to target
+            if not turning and distance > 0:  #  Ensure turning is finished before moving
+                # Compute the direction vector
+                direction_vector = self.targetposition - self.own_position
+                norm_direction = direction_vector / np.linalg.norm(direction_vector)  #  Normalize
+
                 speed_factor = min(distance, 2.0)  # Limit speed based on distance
                 self.msg.twist.linear.x = float(norm_direction[0]) * speed_factor
                 self.msg.twist.linear.y = float(norm_direction[1]) * speed_factor
                 self.msg.twist.linear.z = float(norm_direction[2]) * speed_factor
-                self.send_vel = True
-                self.send_delay = True
-
+                moving = True
             else:
-                # Stop the drone if it's close enough to the target
                 self.msg.twist.linear.x = 0.0
                 self.msg.twist.linear.y = 0.0
                 self.msg.twist.linear.z = 0.0
-                self.send_vel = False
 
+            if not turning and not moving:
+                self.target = False
+
+            # Update send_vel only when an action is needed
+            self.send_vel = turning or moving
+            self.send_delay = self.send_vel  # Keep delay flag consistent with movement
+    
 
     def pos_copter2_listener(self, msg_sub):
         # insert for debug
