@@ -139,11 +139,11 @@ class CmdVel(Node):
             else:
                 self.msg.twist.angular.z = 0.0  # Stop turning when close enough
 
-            # Step 2: Move only when aligned or close to target
-            if not turning and distance > 0:  # Ensure turning is finished before moving
+            # Step 2:Move only when aligned or close to target
+            if not turning and distance > 0:  #  Ensure turning is finished before moving
                 # Compute the direction vector
                 direction_vector = self.targetposition - self.own_position
-                norm_direction = direction_vector / np.linalg.norm(direction_vector)  # Normalize
+                norm_direction = direction_vector / np.linalg.norm(direction_vector)  #  Normalize
 
                 speed_factor = min(distance, 2.0)  # Limit speed based on distance
                 self.msg.twist.linear.x = float(norm_direction[0]) * speed_factor

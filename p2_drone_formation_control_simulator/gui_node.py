@@ -122,7 +122,7 @@ class P2(Node):
                 continue
             pos_text = f"X: {position[0]:.2f}, Y: {position[1]:.2f}, Z: {position[2]:.2f}"
 
-            # Enable Entry, update text, then set to readonly again
+            #  Enable Entry, update text, then set to readonly again
             entry.configure(state='normal')
             entry.delete(0, tk.END)
             entry.insert(0, pos_text)
