@@ -88,7 +88,17 @@ class CmdVel(Node):
             self.send_delay = True
             self.target = False
         elif msg_sub.data == 'left':
-            self.msg.twist.linear.x  = 0.0
+            self.msg.twist.linear.x = 0.0
+            self.msg.twist.linear.y = 0.0
+            self.msg.twist.angular.z = 1.0
+            self.send_vel = True
+            self.send_delay = True
+            self.target = False
+        elif msg_sub.data == 'stop':
+            self.msg.twist.linear.x = 0.0
+            self.msg.twist.linear.y = 0.0
+            self.msg.twist.angular.z = 0.0
+            self.send_vel = False
             self.target = False
         elif msg_sub.data == 'movetotarget':
             self.target = True
