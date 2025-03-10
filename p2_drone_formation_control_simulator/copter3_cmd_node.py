@@ -140,16 +140,16 @@ class CmdVel(Node):
 
             wanted_pos = self.state[0:3] + rotation_matrix.dot(offset)
 
-            richtungsvektor = wanted_pos - self.own_position
-            #norm_richt = richtungsvektor / np.linalg.norm(richtungsvektor)
+            distance_vector = wanted_pos - self.own_position
+            #norm_richt = distance_vector / np.linalg.norm(distance_vector)
 
-            self.msg.twist.linear.x = float(richtungsvektor[0]) * 0.5
-            self.msg.twist.linear.y = float(richtungsvektor[1]) * 0.5
-            self.msg.twist.linear.z = float(richtungsvektor[2]) * 0.5
+            self.msg.twist.linear.x = float(distance_vector[0]) * 0.5
+            self.msg.twist.linear.y = float(distance_vector[1]) * 0.5
+            self.msg.twist.linear.z = float(distance_vector[2]) * 0.5
 
             self.msg.twist.angular.x = 0.0
             self.msg.twist.angular.y = 0.0
-            self.msg.twist.angular.z = self.state[7]
+            self.msg.twist.angular.z = self.state[7] * 0.5
 
             self.send_vel = True
             self.send_delay = True
