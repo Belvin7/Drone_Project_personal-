@@ -139,6 +139,9 @@ class CmdVel(Node):
             ])
 
             wanted_pos = self.state[0:3] + rotation_matrix.dot(offset)
+            wanted_pos2 = self.leader_position + rotation_matrix.dot(offset)
+            kalman_pos_error = np.linalg.norm(wanted_pos - wanted_pos2)
+            self.get_logger().info('Kalman Position Error as Distance in Copter 3 = %f' % kalman_pos_error)
 
             distance_vector = wanted_pos - self.own_position
             #norm_richt = distance_vector / np.linalg.norm(distance_vector)
