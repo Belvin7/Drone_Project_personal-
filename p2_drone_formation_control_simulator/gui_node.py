@@ -120,10 +120,10 @@ class P2(Node):
         entries = [self.current_position_entry1, self.current_position_entry2, self.current_position_entry3]
         positions = [self.own_position1, self.own_position2, self.own_position3]
 
-        for entry, position in zip(entries, positions):
+        for i, (entry, position) in enumerate(zip(entries, positions)):
             if not entry:
                 continue
-            pos_text = f"X: {position[0]:.2f}, Y: {position[1]:.2f}, Z: {position[2]:.2f}"
+            pos_text = f"X: {(position[0] + i * 2):.2f}, Y: {position[1]:.2f}, Z: {position[2]:.2f}"
 
             #  Enable Entry, update text, then set to readonly again
             entry.configure(state='normal')
