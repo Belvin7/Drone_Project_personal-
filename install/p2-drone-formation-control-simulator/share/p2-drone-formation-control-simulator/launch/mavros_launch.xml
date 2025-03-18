@@ -1,0 +1,40 @@
+<launch>
+	<!-- vim: set ft=xml noet : -->
+	<!-- base node launch file-->
+
+	<node pkg="mavros" exec="mavros_node" namespace="iris1" output="screen">
+		<param name="fcu_url" value="udp://127.0.0.1:14550@" />
+		<!--param name="fcu_url" value="/dev/ttyACM0" /-->
+		<param name="gcs_url" value="" />
+		<param name="tgt_system" value="1" />
+		<param name="tgt_component" value="1" />
+		<param name="fcu_protocol" value="v2.0" />
+		<!-- load blacklist, config -->
+		<param from="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml" />
+		<param from="$(find-pkg-share mavros)/launch/apm_config.yaml" />
+	</node>
+
+    <node pkg="mavros" exec="mavros_node" namespace="iris2" output="screen">
+		<param name="fcu_url" value="udp://127.0.0.1:14560@" />
+		<param name="gcs_url" value="" />
+		<param name="tgt_system" value="2" />
+		<param name="tgt_component" value="1" />
+		<param name="fcu_protocol" value="v2.0" />
+
+		<param from="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml" />
+		<param from="$(find-pkg-share mavros)/launch/apm_config.yaml" />
+	</node>
+
+    <node pkg="mavros" exec="mavros_node" namespace="iris3" output="screen">
+		<param name="fcu_url" value="udp://127.0.0.1:14570@" />
+		<param name="gcs_url" value="" />
+		<param name="tgt_system" value="3" />
+		<param name="tgt_component" value="1" />
+		<param name="fcu_protocol" value="v2.0" />
+
+		<param from="$(find-pkg-share mavros)/launch/apm_pluginlists.yaml" />
+		<param from="$(find-pkg-share mavros)/launch/apm_config.yaml" />
+	</node>
+
+
+</launch>
