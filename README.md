@@ -1,10 +1,41 @@
 # p2-drone-formation-control-simulator
 
+## Table of Contents 
+- [Main Goal](#main-goal)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [start simulation](#start-simulation)
+- [Future work to do](#future-work-to-do)
+- [Resources](#resources)
+- [Documentation](#documentation)
+- [License](#license)
+- [Authors](#authors)
+- [Misc](#misc)
+
+## Main Goal 
 - simulates quadcopter drones flying in formation
-- drones followes path and maintain the formation
+- drones follows path and maintain the formation
 - path and formation can be changed
 
+
+![Drones in Formation](resource/Drones_in_Formation.jpeg)
+
+## Prerequisites 
+
+- what do you expect the user of your repository to have before the installation process
+- things like
+  - what hardware do they need
+  - do you need a specific OS / Distribution
+  - do they have to install specific libraries
+  - do they need to check or change system configurations
+
+Before proceeding with the installation, ensure you have the following:  
+- **Hardware Requirements:** None for the simulation   
+- **Operating System:**  Ubuntu 22.04 , Use aif you use a virtual machine if you have windows  
+- **Required Libraries:**  ROS2 jazzy jalisco , MAVROS, ArduPilot ,Gazebo 
+  
 ## Installation
+
 Install according to their documentation
 - Ubuntu 24.04 
 - ROS2 jazzy jalisco  
@@ -83,8 +114,6 @@ Install according to their documentation
     export GZ_SIM_SYSTEM_PLUGIN_PATH=:/home/"your path to the project"/src/p2-drone-formation-control-simulator/models:
     export GZ_SIM_RESOURCE_PATH=:/home/"your path to the project"/src/p2-drone-formation-control-simulator/models:
 
-
-
 ## start simulation
 
 - to prevent clutter I made a separate folder where we start the terminals mentioned in the steps below
@@ -128,9 +157,7 @@ Install according to their documentation
         ros2 service call /ap/experimental/takeoff  ardupilot_msgs/srv/Takeoff "{alt: 20.0}"
 
 
---------------------
-
-### Shortened way to start sim : 
+#### Shortened way to start sim : 
 
 1. cd to ardu_ws directory 
 2. `source ./install/setup.bash`
@@ -138,56 +165,33 @@ Install according to their documentation
 4. start the script : `. src/p2-drone-formation-control-simulator/launch/start_all.sh`
 5. In another terminal 
    `ros2 launch p2-drone-formation-control-simulator gui.launch.py`
-## Usage
-- add later
-
-## Authors and acknowledgment
-- add later
-
-## License
-- add later
-
---------------------
-
-# p2-drone-formation-control-simulator
-
-- simulates quadcopter drones flying in formation
-- drones follows path and maintain the formation
-- path and formation can be changed
 
 
 
-- Here you should use up to three sentences to summarize what the project and especially the code is about.
-- Image/GIF that describes the project (optional)
-
-[[_TOC_]]
-
-## Prerequisites 
-
-- what do you expect the user of your repository to have before the installation process
-- things like
-  - what hardware do they need
-  - do you need a specific OS / Distribution
-  - do they have to install specific libraries
-  - do they need to check or change system configurations
-  
-## Installation
-
-- what does a user of your repository have to do to make your software work
-- this includes everything from downloading this repository to actually running your software
-- e.g. steps like ```colcon build``` and ```source install/setup.bash``` etc.
-
-## ToDo / future work
+## Future work to do 
 
 - if you know there are things you did not finish or cannot finish in the span of your project mention them here
 - could also be a place for "known bugs" (could also be its own section)
 
+
+- More and different formations
+- Adding more complex path-planning
+- Modify the movement to make it more accurate
+- Different simulated environments
+
 ## Resources
 
-- if you have useful links, mention them here
+(- if you have useful links, mention them here
 - if you use other projects / libraries to build upon, mention them here
-- if you get data sheets for your hardware, link them here
-- etc.
+- if you get data sheets for your hardware, link them here )
+
+
+- [ArduPilot Documentation](https://ardupilot.org/ardupilot/) – *ArduPilot Development Team* (Last updated: 17.03.2025)
+- [ROS 2 Installation Guide](https://docs.ros.org/en/jazzy/Installation.html) – *Open Robotics* (Last updated: 2025)
+- [ROS 2 Beginner CLI Tools Tutorial](https://docs.ros.org/en/jazzy/Tutorials/Beginner-CLI-Tools.html) – *Open Robotics* (Last updated: 2025)
+- [Gazebo Tutorials](https://gazebosim.org/docs/latest/tutorials/) – *Open Source Robotics Foundation* (Last updated: 2025)
+- [MAVROS Documentation](http://wiki.ros.org/mavros) – *Open Robotics* (Last updated: 03.03.2018)
+- [Tkinter Documentation](https://docs.python.org/3/library/tkinter.html) – *Python Software Foundation* (Last updated: 18.03.2025)
 
 ## Documentation
 
@@ -199,9 +203,13 @@ Install according to their documentation
 - optional
 - use MIT License
 
+? 
+
 ## Authors
 
-- your names and a way to contact you
+- Michael Faber : michael.faber@ovgu.de
+- Christian Grüneberg: christian.grueneberg@ovgu.de
+- Belvin Benny Thomas : belvin.benny@st.ovgu.de
 
 ## Misc
 
