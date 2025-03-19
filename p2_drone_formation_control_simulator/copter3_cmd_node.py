@@ -143,10 +143,6 @@ class CmdVel(Node):
             kalman_pos_error = np.linalg.norm(wanted_pos - wanted_pos2)
             self.get_logger().info('Kalman Position Error as Distance in Copter 3 = %f' % kalman_pos_error)
 
-            wanted_pos2 = self.leader_position + rotation_matrix.dot(offset)
-            kalman_pos_error = np.linalg.norm(wanted_pos - wanted_pos2)
-            self.get_logger().info('Kalman Position Error as Distance in Copter 3 = %f' % kalman_pos_error)
-
             # Angular Error calculation
             theta_actual = self.z[3]  
             theta_estimated = self.state[3]
