@@ -22,6 +22,7 @@ class CmdVel(Node):
         self.formation = False
         self.v_formation = False
         self.line_formation = False
+        self.start_time = time.time()
         self.msg = TwistStamped()
         self.msg.header.stamp = self.get_clock().now().to_msg()
         self.msg.header.frame_id = 'base_link'
@@ -146,6 +147,10 @@ class CmdVel(Node):
             rmse = np.sqrt(mean_kal_error)
 
             self.get_logger().info('Kalman Position Error as RMSE in Copter 3 = %f' % rmse)
+            timestamp = time.time()
+
+            with open('copter_3_rmse.txt', 'a') as f:
+                f.write(f"{timestamp-self.start_time},{rmse}\n")
 
             # Angular Error calculation
             theta_actual = self.z[3]  
