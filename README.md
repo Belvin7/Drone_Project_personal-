@@ -22,13 +22,6 @@
 
 ## Prerequisites 
 
-- what do you expect the user of your repository to have before the installation process
-- things like
-  - what hardware do they need
-  - do you need a specific OS / Distribution
-  - do they have to install specific libraries
-  - do they need to check or change system configurations
-
 Before proceeding with the installation, ensure you have the following:  
 - **Hardware Requirements:** None for the simulation   
 - **Operating System:**  Ubuntu 22.04 , Use aif you use a virtual machine if you have windows  
@@ -114,19 +107,17 @@ Install according to their documentation
     export GZ_SIM_SYSTEM_PLUGIN_PATH=:/home/"your path to the project"/src/p2-drone-formation-control-simulator/models:
     export GZ_SIM_RESOURCE_PATH=:/home/"your path to the project"/src/p2-drone-formation-control-simulator/models:
 
-
-
-##Way to start sim : 
+## Start simulation
 
 1. cd to ardu_ws directory 
 2. `colcon build --packages-select p2-drone-formation-control-simulator`
 3. `source ./install/setup.bash`
 4. start the script : `. src/p2-drone-formation-control-simulator/launch/start_all.sh`
 
-
-
 ## Future work to do 
 
+- if you know there are things you did not finish or cannot finish in the span of your project mention them here
+- could also be a place for "known bugs" (could also be its own section)
 - More and different formations
 - Adding more complex path-planning
 - modify the movement to make it more accurate
@@ -134,11 +125,6 @@ Install according to their documentation
 - Rviz/Robot state publisher
 
 ## Resources
-
-(- if you have useful links, mention them here
-- if you use other projects / libraries to build upon, mention them here
-- if you get data sheets for your hardware, link them here )
-
 
 - [ArduPilot Documentation](https://ardupilot.org/ardupilot/) – *ArduPilot Development Team* (Last updated: 17.03.2025)
 - [ROS 2 Installation Guide](https://docs.ros.org/en/jazzy/Installation.html) – *Open Robotics* (Last updated: 2025)
@@ -150,14 +136,6 @@ Install according to their documentation
 ## Documentation
 
 - you can link to your report here
-- you can also explain your arguments or parameters here, if applicable
-
-## License 
-
-- optional
-- use MIT License
-
-? 
 
 ## Authors
 
@@ -165,17 +143,3 @@ Install according to their documentation
 - Christian Grüneberg: christian.grueneberg@ovgu.de
 - Belvin Benny Thomas : belvin.benny@st.ovgu.de
 
-## Misc
-
-Some things that you should keep in mind
-
-- READMEs are always written in Markdown, so you can use its capabilities
-  - use [links](https://docs.gitlab.com/ee/user/markdown.html#links), [tables](https://docs.gitlab.com/ee/user/markdown.html#tables) etc. to your advantage
-  - insert [images](https://docs.gitlab.com/ee/user/markdown.html#images) or [videos](https://docs.gitlab.com/ee/user/markdown.html#videos)
-  - make your Readme a joy to read
-- Another part of your documentation are your are your commits, so write [good commits](https://cbea.ms/git-commit/)
-- the order of the paragraphs can be changed and you can of course add paragraphs and sections as you see fit
-
-Keep your read me concise, if you have a lot of documentation, like a lot of parameters to explain then maybe it is a better idea to explain them in your config file directly and link to it. Or you can add a documentation folder to your project and link to Markdown files there. Another way would be to set up a wiki complementary to your code. Code documentation can also be done with tools like [Docxygen](https://www.doxygen.nl/).
-
-Good luck with your project!

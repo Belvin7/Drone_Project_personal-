@@ -186,7 +186,7 @@ class P2(Node):
 
         # start moving button
         start1_button = tk.Button(self.window, 
-          text='Start', 
+          text='Move forward', 
           command=self.start1_clicked,
           padx=10,
           pady=5,
@@ -281,7 +281,7 @@ class P2(Node):
 
         # start moving button
         start2_button = tk.Button(self.window, 
-          text='Start', 
+          text='Move forward', 
           command=self.start2_clicked,
           padx=10,
           pady=5,
@@ -377,7 +377,7 @@ class P2(Node):
 
         # start moving button
         start3_button = tk.Button(self.window, 
-          text='Start', 
+          text='Move forward', 
           command=self.start3_clicked,
           padx=10,
           pady=5,
@@ -471,7 +471,7 @@ class P2(Node):
 
         # start moving button
         start4_button = tk.Button(self.window,
-                                  text='Start',
+                                  text='Move forward',
                                   command=self.start4_clicked,
                                   padx=10,
                                   pady=5,
