@@ -114,70 +114,24 @@ Install according to their documentation
     export GZ_SIM_SYSTEM_PLUGIN_PATH=:/home/"your path to the project"/src/p2-drone-formation-control-simulator/models:
     export GZ_SIM_RESOURCE_PATH=:/home/"your path to the project"/src/p2-drone-formation-control-simulator/models:
 
-## start simulation
-
-- to prevent clutter I made a separate folder where we start the terminals mentioned in the steps below
-- because both commands create additional files and a folder 
-- to run a single drone simulation:
-    1. open a terminal and launch "ros2 launch ardupilot_gz_bringup iris_runway.launch.py" \
-        -> now gazebo and rviz should start
-    2. open second terminal and run "mavproxy.py --master=udp:127.0.0.1:14550  --console --map --sitl=127.0.0.1:5501" \
-        -> this will launch the mav proxy which acts as a ground station for the drone \
-        -> maybe "--console" and "--map" not necessary because the additional windows are not really needed 
-    3. to start the drone type in the terminal open in step 2. \
-        -> "mode guided" \
-        -> "arm throttle" \
-        -> "takeoff 40" \
-        -> now the drone should start the motors and take off to an altitude of 40m \
-        -> you should see this in gazebo and rviz 
-    4. you can give additional commands \
-        -> see "https://ardupilot.org/mavproxy/docs/getting_started/cheatsheet.html" \
-           and "https://ardupilot.org/dev/docs/copter-sitl-mavproxy-tutorial.html" \
-           for further information
-    5. "mode rtl" \
-        -> drone return to home-waypoint, lands and stops the motors
-
-- start simulation and command drone: 
-    1. cmd from "ardupilot/Tools/ros2/README.md":
->>>
-        ros2 launch ardupilot_sitl sitl_dds_udp.launch.py transport:=udp4 synthetic_clock:=True wipe:=False model:=quad speedup:=1 slave:=0 instance:=0 defaults:=$(ros2 pkg prefix ardupilot_sitl)/share/ardupilot_sitl/config/default_params/copter.parm,$(ros2 pkg prefix ardupilot_sitl)/share/ardupilot_sitl/config/default_params/dds_udp.parm sim_address:=127.0.0.1 master:=tcp:127.0.0.1:5760 sitl:=127.0.0.1:5501
->>>
-    2. open additional terminal and type following cmd there:
-
-    3. switch to guided mode
-
-        ros2 service call /ap/mode_switch ardupilot_msgs/srv/ModeSwitch "{mode: 4}"
-
-    4. arming motors
-
-        ros2 service call /ap/arm_motors ardupilot_msgs/srv/ArmMotors "{arm: true}"
-
-    5. takeoff with altitude of 20m
-
-        ros2 service call /ap/experimental/takeoff  ardupilot_msgs/srv/Takeoff "{alt: 20.0}"
 
 
-#### Shortened way to start sim : 
+##Way to start sim : 
 
 1. cd to ardu_ws directory 
-2. `source ./install/setup.bash`
-3. `colcon build --packages-select p2-drone-formation-control-simulator`
+2. `colcon build --packages-select p2-drone-formation-control-simulator`
+3. `source ./install/setup.bash`
 4. start the script : `. src/p2-drone-formation-control-simulator/launch/start_all.sh`
-5. In another terminal 
-   `ros2 launch p2-drone-formation-control-simulator gui.launch.py`
 
 
 
 ## Future work to do 
 
-- if you know there are things you did not finish or cannot finish in the span of your project mention them here
-- could also be a place for "known bugs" (could also be its own section)
-
-
 - More and different formations
 - Adding more complex path-planning
-- Modify the movement to make it more accurate
-- Different simulated environments
+- modify the movement to make it more accurate
+- different simulated environments
+- Rviz/Robot state publisher
 
 ## Resources
 
