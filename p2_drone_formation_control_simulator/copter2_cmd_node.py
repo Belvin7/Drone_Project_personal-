@@ -26,6 +26,7 @@ class CmdVel(Node):
         self.formation = False
         self.v_formation = False
         self.line_formation = False
+        self.loss = False
         self.start_time = time.time()
         self.msg = TwistStamped()
         self.msg.header.stamp = self.get_clock().now().to_msg()
@@ -122,13 +123,17 @@ class CmdVel(Node):
         self.kalman_predict()
         p = np.random.rand()
         if p >= 0.2:
+            self.loss = False
             self.kalman_update()
+        else:
+            self.loss = True
 
     def own_listener(self, msg_sub):
         self.own_position[0] = msg_sub.pose.position.x + 2
         self.own_position[1] = msg_sub.pose.position.y
         self.own_position[2] = msg_sub.pose.position.z
 
+        ## If formation is enabled calculate the offset to the leader depending on which formation is wanted
         if self.formation:
             if self.v_formation:
                 param_dis = self.get_parameter('wanted_distance').get_parameter_value().double_value
@@ -148,31 +153,36 @@ class CmdVel(Node):
 
             wanted_pos = self.state[0:3] + rotation_matrix.dot(offset)
             wanted_pos2 = self.leader_position + rotation_matrix.dot(offset)
+
+            ## Calculation and logging of RMSE either for formation position or leader position
+            ## uncomment as needed
             #kalman_pos_error = np.linalg.norm(wanted_pos - wanted_pos2)
-            kal_error = (wanted_pos2 - wanted_pos) ** 2
-            mean_kal_error = np.mean(kal_error)
-            rmse = np.sqrt(mean_kal_error)
+            #kal_error = (wanted_pos2 - wanted_pos) ** 2
+            #mean_kal_error = np.mean(kal_error)
+            #rmse = np.sqrt(mean_kal_error)
 
-            self.get_logger().info('Kalman Position Error as RMSE in Copter 2 = %f' % rmse)
-            timestamp = time.time()
+            #self.get_logger().info('Kalman Position Error as RMSE in Copter 2 = %f' % rmse)
+            #timestamp = time.time()
 
-            with open('copter_2_rmse.txt', 'a') as f:
-                f.write(f"{timestamp-self.start_time},{rmse}\n")
+            #mse=np.square(self.state[0:3] - self.leader_position).mean()
+            #mean_rms=rms/20
+            #rmse=np.sqrt(mse)
+            #with open('copter_2_rmse.txt', 'a') as f:
+            #    f.write(f"{timestamp-self.start_time},{rmse},{self.loss}\n")
 
             # Angular Error calculation
-            theta_actual = self.z[3]  
-            theta_estimated = self.state[3]
+            #theta_actual = self.z[3]
+            #theta_estimated = self.state[3]
 
-            angular_error = np.abs(theta_actual - theta_estimated)
+            #angular_error = np.abs(theta_actual - theta_estimated)
             # Normalized to be within [0, π] 
-            angular_error = np.arctan2(np.sin(angular_error), np.cos(angular_error))
-            angular_error_deg = np.degrees(angular_error)
+            #angular_error = np.arctan2(np.sin(angular_error), np.cos(angular_error))
+            #angular_error_deg = np.degrees(angular_error)
 
-            self.get_logger().info('Kalman Angular Error in Copter 2 = %f radians' % angular_error)
-            self.get_logger().info('Kalman Angular Error in Copter 2 = %f degrees' % angular_error_deg)
+            #self.get_logger().info('Kalman Angular Error in Copter 2 = %f radians' % angular_error)
+            #self.get_logger().info('Kalman Angular Error in Copter 2 = %f degrees' % angular_error_deg)
 
-
-
+            ##Calculation of the Movement to the point
             distance_vector = wanted_pos - self.own_position
             #norm_richt = distance_vector / np.linalg.norm(distance_vector)
 
