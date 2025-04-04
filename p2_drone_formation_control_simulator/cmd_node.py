@@ -10,8 +10,6 @@ class CmdVel(Node):
         super().__init__('cmd_vel')
 
         # variables
-        #self.i = 0
-        # TODO: check if we still need send_vel
         self.send_vel = False
         self.msg = TwistStamped()
         self.msg.header.stamp = self.get_clock().now().to_msg()

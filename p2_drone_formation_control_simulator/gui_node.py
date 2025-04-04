@@ -593,7 +593,6 @@ class P2(Node):
         start = self.get_clock().now()
         while not is_in_desired_mode:
             result = self.switch_mode(desired_mode, drone)
-            # TODO: Handle successful switch or the case that the vehicle is already in expected mode
             is_in_desired_mode = result.mode_sent
             time.sleep(1)
         return is_in_desired_mode

@@ -3,8 +3,8 @@
 <package format="3">
   <name>p2-drone-formation-control-simulator</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="michael@todo.todo">michael</maintainer>
+  <description>This is a multiple drone simulator for formation</description>
+  <maintainer email="michael.faber@ovgu.de">michael</maintainer>
   <license>Apache-2.0</license>
 
   <exec_depend>rclpy</exec_depend>

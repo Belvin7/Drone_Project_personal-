@@ -10,12 +10,6 @@ def generate_launch_description():
         package='p2-drone-formation-control-simulator',
         executable='gui_node'
     )
-    
-    # only start for one drone
-    #cmd_node = Node(
-    #    package='p2-drone-formation-control-simulator',
-    #    executable='cmd_node'
-    #)
 
     config = os.path.join(
         get_package_share_directory('p2-drone-formation-control-simulator'),
@@ -41,7 +35,6 @@ def generate_launch_description():
     )
   
     ld.add_action(gui_node)
-    #ld.add_action(cmd_node)
     ld.add_action(copter1_cmd_node)
     ld.add_action(copter2_cmd_node)
     ld.add_action(copter3_cmd_node)

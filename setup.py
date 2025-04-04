@@ -25,8 +25,8 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='michael',
-    maintainer_email='michael@todo.todo',
-    description='TODO: Package description',
+    maintainer_email='michael.faber@ovgu.de',
+    description='This is a multiple drone simulator for formation',
     license='Apache-2.0',
     #tests_require=['pytest'],
     entry_points={

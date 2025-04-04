@@ -149,35 +149,34 @@ class CmdVel(Node):
 
             ## Calculation and logging of RMSE either for formation position or leader position
             ## uncomment as needed
-            #kalman_pos_error = np.linalg.norm(wanted_pos - wanted_pos2)
-            #kal_error = (wanted_pos2 - wanted_pos) ** 2
-            #mean_kal_error = np.mean(kal_error)
-            #rmse = np.sqrt(mean_kal_error)
+            """
+            kalman_pos_error = np.linalg.norm(wanted_pos - wanted_pos2)
+            kal_error = (wanted_pos2 - wanted_pos) ** 2
+            mean_kal_error = np.mean(kal_error)
+            rmse = np.sqrt(mean_kal_error)
 
-            #self.get_logger().info('Kalman Position Error as RMSE in Copter 3 = %f' % rmse)
-            #timestamp = time.time()
+            self.get_logger().info('Kalman Position Error as RMSE in Copter 3 = %f' % rmse)
+            timestamp = time.time()
 
-            #mse = np.square(self.state[0:3] - self.leader_position).mean()
-            # mean_rms=rms/20
-            #rmse = np.sqrt(mse)
-            #with open('copter_3_rmse.txt', 'a') as f:
-            #    f.write(f"{timestamp - self.start_time},{rmse},{self.loss}\n")
+            mse = np.square(self.state[0:3] - self.leader_position).mean()
+            rmse = np.sqrt(mse)
+            with open('copter_3_rmse.txt', 'a') as f:
+                f.write(f"{timestamp - self.start_time},{rmse},{self.loss}\n")
 
             # Angular Error calculation
-            #theta_actual = self.z[3]
-            #theta_estimated = self.state[3]
+            theta_actual = self.z[3]
+            theta_estimated = self.state[3]
 
-            #angular_error = np.abs(theta_actual - theta_estimated)
+            angular_error = np.abs(theta_actual - theta_estimated)
             # Normalized to be within [0, π] 
-            #angular_error = np.arctan2(np.sin(angular_error), np.cos(angular_error))
-            #angular_error_deg = np.degrees(angular_error)
+            angular_error = np.arctan2(np.sin(angular_error), np.cos(angular_error))
+            angular_error_deg = np.degrees(angular_error)
 
             #self.get_logger().info('Kalman Angular Error in Copter 3 = %f radians' % angular_error)
             #self.get_logger().info('Kalman Angular Error in Copter 3 = %f degrees' % angular_error_deg)
-
+            """
             ##Calculation of the Movement to the point
             distance_vector = wanted_pos - self.own_position
-            #norm_richt = distance_vector / np.linalg.norm(distance_vector)
 
             self.msg.twist.linear.x = float(distance_vector[0]) * 0.5
             self.msg.twist.linear.y = float(distance_vector[1]) * 0.5
@@ -250,7 +249,6 @@ class CmdVel(Node):
         S = self.H @ self.Cov @ self.H.transpose() + self.R
         K = self.Cov @ self.H.transpose() @ np.linalg.inv(S)
         self.state = self.state + K @ (self.z - self.H @ self.state)
-        #self.Cov = self.Cov - K @ self.H @ self.Cov
         self.Cov = self.Cov - K @ S @ K.transpose()
 
 
