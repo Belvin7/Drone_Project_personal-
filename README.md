@@ -1,5 +1,7 @@
 # p2-drone-formation-control-simulator
 
+![Drones in Formation](resource/Drones_in_V_Formation.jpeg)
+
 ## Table of Contents 
 - [Main Goal](#main-goal)
 - [Prerequisites](#prerequisites)
@@ -13,29 +15,26 @@
 - [Misc](#misc)
 
 ## Main Goal 
-- simulates quadcopter drones flying in formation
-- drones follows path and maintain the formation
-- path and formation can be changed
+- Implementation of formation control algorithm
+- Simulated ad-hoc communications between agents
+- Implementation of event-based communications policies between agents
 
-
-![Drones in Formation](resource/Drones_in_Formation.jpeg)
 
 ## Prerequisites 
 
 Before proceeding with the installation, ensure you have the following:  
-- **Hardware Requirements:** None for the simulation   
 - **Operating System:**  Ubuntu 22.04 , Use aif you use a virtual machine if you have windows  
 - **Required Libraries:**  ROS2 jazzy jalisco , MAVROS, ArduPilot ,Gazebo 
   
 ## Installation
 
 Install according to their documentation
-- Ubuntu 24.04 
-- ROS2 jazzy jalisco  
-- gazeboo harmonic -> sudo apt install ros-jazzy-ros-gz 
-- tkinter \
-    -> rosdep did not find it, if not already installed do so
-- ardupilot:
+- [Ubuntu 24.04](https://ubuntu.com/tutorials/install-ubuntu-desktop#1-overview) 
+- [ROS2 jazzy jalisco](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html)  
+- Gazeboo harmonic -> sudo apt install ros-jazzy-ros-gz 
+- Tkinter 
+
+- Ardupilot:
     1. change to the folder you want to install ardupilot 
     2. mkdir -p ardu_ws/src \
         -> need to be installed in own ros workspace 
@@ -109,20 +108,29 @@ Install according to their documentation
 
 ## Start simulation
 
-1. cd to ardu_ws directory 
-2. `colcon build --packages-select p2-drone-formation-control-simulator`
-3. `source ./install/setup.bash`
-4. start the script : `. src/p2-drone-formation-control-simulator/launch/start_all.sh`
+1. Switch to the ardu_ws directory from terminal.cd to ardu_ws directory 
+2.Colcon build the project package so that any changes made to the p2-drone-formation-control-simulator package is built.  
+``` 
+colcon build --packages-select p2-drone-formation-control-simulator
+```
+3. Source your environment so that the terminal knows about the newly built packages 
+```
+source ./install/setup.bash
+```
+4. Start the script using the following command :
+ ```
+ . src/p2-drone-formation-control-simulator/launch/start_all.sh
+ ```
 
 ## Future work to do 
 
-- if you know there are things you did not finish or cannot finish in the span of your project mention them here
-- could also be a place for "known bugs" (could also be its own section)
 - More and different formations
 - Adding more complex path-planning
 - modify the movement to make it more accurate
 - different simulated environments
 - Rviz/Robot state publisher
+- Different communication patterns 
+- Better path planning
 
 ## Resources
 
