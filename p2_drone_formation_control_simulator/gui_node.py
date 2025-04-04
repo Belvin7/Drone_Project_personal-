@@ -105,17 +105,18 @@ class P2(Node):
             self.get_logger().info('copter3 takeoff service not available, waiting again...')
 
         
-
+        # Initialize GUI entry fields for displaying current positions of all 3 drones
         self.current_position_entry1 = None
         self.current_position_entry2 = None
         self.current_position_entry3 = None
 
-
+        # Update the given position list with realtime coordinates from PoseStamped message
     def update_position(self, position, msg: PoseStamped):
         position[0] = msg.pose.position.x
         position[1] = msg.pose.position.y
         position[2] = msg.pose.position.z
 
+        # Updates the GUI to show the updated positions of all drones
     def update_gui(self):
         entries = [self.current_position_entry1, self.current_position_entry2, self.current_position_entry3]
         positions = [self.own_position1, self.own_position2, self.own_position3]
@@ -146,15 +147,8 @@ class P2(Node):
         l3.grid(column=2, row=0, pady=0)
         l4.grid(column=3, row=0, pady=0)
 
-            ## first drone
+        ## first drone
         # guided button
-
-
-        #currentpostiond1 = tk.Entry(self.window)
-        #currentpostiond1.grid(column=0, row=10, padx=10, pady=0)
-        #currentpostiond1.insert(0, self.get_logger().info('Position = ' + str(self.own_position)))  # Set initial text
-        #currentpostiond1.configure(state='readonly')  # Make it read-only
-
         guided1_button = tk.Button(self.window,
           text='Guided-mode', 
           command=self.guided1_clicked,

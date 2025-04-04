@@ -72,7 +72,7 @@ class CmdVel(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def cmd_listener(self, msg_sub):
-        #self.get_logger().info('cmd = %s' % msg_sub.data)
+        
         if msg_sub.data == 'start':
             self.msg.twist.linear.x  = np.sin(2*np.pi/360 * float(self.orientation)) * 3.0 
             self.msg.twist.linear.y  = np.cos(2*np.pi/360 * float(self.orientation)) * 3.0
@@ -141,7 +141,7 @@ class CmdVel(Node):
             turning = False
             moving = False
 
-            # Step 1: Turn only if far away
+            # Turn only if far away
             if distance > 0 and abs(yaw_error) > 0.1:  # Only turn if far from target
                 speed_factor = min(abs(yaw_error), 1.0)  # Limit turning speed
                 self.msg.twist.angular.z = math.copysign(speed_factor, yaw_error)
@@ -149,8 +149,8 @@ class CmdVel(Node):
             else:
                 self.msg.twist.angular.z = 0.0  # Stop turning when close enough
 
-            # Step 2:Move only when aligned or close to target
-            if not turning and distance > 0:  #  Ensure turning is finished before moving
+            # Move only when aligned or close to the target
+            if not turning and distance > 0:  # Ensure turning is finished before moving
                 # Compute the direction vector
                 direction_vector = self.targetposition - self.own_position
                 norm_direction = direction_vector / np.linalg.norm(direction_vector)  #  Normalize
@@ -175,10 +175,6 @@ class CmdVel(Node):
 
     def pos_copter2_listener(self, msg_sub):
         # insert for debug
-        #if self.send_vel:
-        #    self.get_logger().info('copter1: copter2.latitude  = %f' % msg_sub.latitude)
-        #    self.get_logger().info('copter1: copter2.longitude = %f' % msg_sub.longitude)
-        #    self.get_logger().info('copter1: copter2.altitude  = %f' % msg_sub.altitude)
         self.follow_lat = msg_sub.latitude
         self.follow_log = msg_sub.longitude
         self.follow_alt = msg_sub.altitude
@@ -194,11 +190,10 @@ class CmdVel(Node):
         if self.send_vel and self.send_delay:
             self.msg.header.stamp = self.get_clock().now().to_msg()
             self.cmd_vel_publisher.publish(self.msg)
-            #self.get_logger().info('Publishing: "%s"' % self.msg)
+
         elif not self.send_vel and self.send_delay:
             self.msg.header.stamp = self.get_clock().now().to_msg()
             self.cmd_vel_publisher.publish(self.msg)
-            #self.get_logger().info('Publishing: "%s"' % self.msg)
             self.send_delay = False
 
  
